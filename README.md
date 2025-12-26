@@ -1,153 +1,197 @@
 # Flowbill SaaS Platform
 
-**Flowbill** is a modern B2B multi-tenant SaaS platform designed to manage Projects, Billing, Time Tracking, and Reporting. It is built using a **Microservices Architecture** with **Spring Boot 3**, **Docker**, a **Schema-per-Tenant** database strategy, and a responsive **React/Tailwind** Frontend.
+**Flowbill** is a comprehensive, enterprise-grade B2B Multi-Tenant SaaS platform designed for managing Projects, Time Tracking, and Billing. Built with a robust **Microservices Architecture**, it leverages **Spring Boot 3**, **Docker**, and a **Schema-per-Tenant** database strategy to ensure data isolation and scalability. The frontend is a modern Single Page Application (SPA) built with **React**, **TypeScript**, and **Tailwind CSS**.
 
 ---
 
-## 🏗 Architecture
+## 🏗 Architecture Overview
 
-The platform follows a distributed microservices architecture where domains are separated.
-All services share a single **PostgreSQL** instance (`postgres-data`), utilizing logical isolation via **PostgreSQL Schemas** (Multi-tenancy).
+The system follows a strict distributed systems pattern where domain responsibilities are decoupled into individual services.
 
-### Core Components
-| Service | Port | Description | DB Access |
-| :--- | :--- | :--- | :--- |
-| **Frontend** | `3000` | React + Vite + Tailwind UI. | N/A (Consumes Gateway API) |
-| **Gateway** | `8080` | Centralized entry point. Handles routing & JWT validation. | None |
-| **Auth Service** | `8081` | User management (Super Admin, Enterprise Admin, Users) & JWT issuance. | `public` schema |
-| **Tenant Service** | `8082` | Tenant lifecycle & Schema provisioning. | `public` schema (with CREATE privs) |
-| **Project Service** | `8083` | Project & Task management. | `tenant_id` schema |
-| **Time Service** | `8084` | Time entries tracking. | `tenant_id` schema |
-| **Billing Service** | `8085` | Invoices & subscription billing. | `tenant_id` schema |
-| **Reporting Service** | `8086` | Analytics & Reports. | `tenant_id` schema |
+### Global System Design
+```mermaid
+graph TD
+    User((User)) -->|HTTPS| Nginx[Frontend (React)]
+    Nginx -->|API Calls (start with /api)| Gateway[API Gateway (Spring Cloud)]
+    
+    subgraph "Backend Services (Private Network)"
+        Gateway -->|Auth & JWT| AuthService[Auth Service]
+        Gateway -->|Tenant Mgmt| TenantService[Tenant Service]
+        Gateway -->|Projects| ProjectService[Project Service]
+        Gateway -->|Time Tracking| TimeService[Time Service]
+        Gateway -->|Billing| BillingService[Billing Service]
+    end
 
-### Multi-Tenancy Strategy
-*   **Schema-per-Tenant**: Data is isolated in separate schemas (e.g., `acme`, `corp_b`).
-*   **Routing**: The `Gateway` extracts `tenantId` from the JWT `tenantId` claim.
-*   **Propagation**: The `X-Tenant-ID` header is passed to downstream services.
-*   **Resolution**: Services use a custom `TenantDataSource` to execute `SET search_path TO {tenant_id}` for every request.
-*   **Migrations**: **Flyway** is used for database migrations. `baseline-on-migrate` is enabled to handle existing schemas.
+    subgraph "Data Layer"
+        AuthService -->|Schema: public| DB[(PostgreSQL)]
+        TenantService -->|Schema: public| DB
+        ProjectService -->|Schema: tenant_id| DB
+        TimeService -->|Schema: tenant_id| DB
+        BillingService -->|Schema: tenant_id| DB
+    end
+```
+
+### Key Architectural Concepts
+1.  **Microservices**: 5+ distinct services, each independently deployable.
+2.  **API Gateway**: A single entry point (Port `8080`) that handles Routing, Load Balancing, and central JWT Validation.
+3.  **Multi-Tenancy (Schema-per-Tenant)**:
+    *   **Isolation**: Every tenant (Enterprise) gets their own PostgreSQL schema (e.g., `tenant_acme`, `tenant_beta`).
+    *   **Dynamic Routing**: The backend inspects the `X-Tenant-ID` header (injected by Gateway from JWT) and executes `SET search_path TO tenant_xxx` before every query.
+4.  **Security**:
+    *   **Stateless**: Uses JWT (JSON Web Tokens) for authentication.
+    *   **RBAC**: Role-Based Access Control (`ROLE_SUPER_ADMIN`, `ROLE_ADMIN_ENTREPRISE`, `ROLE_USER`).
 
 ---
 
-## 🛠 Tech Stack
+## 📦 Modules & Project Structure
+
+The repository is organized as a **Mono-repo** containing all services and the frontend.
+
+| Directory | Type | Description |
+| :--- | :--- | :--- |
+| `common/` | **Library** | Shared code (Security Configs, Tenant Context, Exception Handling) used by all services. |
+| `gateway/` | **Service** | Spring Cloud Gateway. Filters requests, validates JWTs, extracts `tenantId`. |
+| `auth-service/` | **Service** | Manages Users, Roles, JWT Generation, and Auth API (`/auth/login`). |
+| `tenant-service/` | **Service** | Manages Tenant lifecycle (Create Enterprise) and provisions new DB schemas. |
+| `project-service/` | **Service** | Manages Projects and Tasks. Multi-tenant aware. |
+| `time-service/` | **Service** | Manages Time Entries and Work logs. Multi-tenant aware. |
+| `billing-service/` | **Service** | Manages Invoices and Quotes. Multi-tenant aware. |
+| `frontend/` | **App** | React + TypeScript SPA. |
+| `docker-compose.yml` | **Config** | Orchestration for all services + PostgreSQL database. |
+| `start_platform.bat` | **Script** | One-click automation script for building and running the platform. |
+
+---
+
+## 🛠 Technology Stack
 
 ### Backend
-*   **Language**: Java 17
 *   **Framework**: Spring Boot 3.2.1
-*   **Build Tool**: Maven (Multi-module)
-*   **Database**: PostgreSQL 15 (Dockerized)
-*   **Migrations**: Flyway
-*   **Security**: Spring Security + JWT (Stateless)
+*   **Language**: Java 17
+*   **Build System**: Maven (Multi-module structure)
+*   **Database**: PostgreSQL 15
+*   **Migration Tool**: Flyway (Automatic schema versioning & migration)
+*   **Security**: Spring Security 6 + JJWT (Java JWT)
+*   **Inter-service**: REST Template / Feign Client pattern (via Gateway)
 
 ### Frontend
-*   **Framework**: React 18
-*   **Build Tool**: Vite
-*   **Styling**: Tailwind CSS
-*   **Routing**: React Router DOM (with Protected Routes)
-*   **State/API**: Axios, JWT Decode
-
-### DevOps
-*   **Containerization**: Docker & Docker Compose
-*   **Automation**: `start_platform.bat` script for one-click startup.
+*   **Library**: React 18
+*   **Compiler**: Vite (Fast HMR)
+*   **Language**: TypeScript
+*   **Styling**: Tailwind CSS (Utility-first)
+*   **Routing**: React Router DOM 6
+*   **HTTP**: Axios (with Interceptors for JWT injection)
 
 ---
 
-## 🚀 Getting Started
+## 🚀 Installation & Execution
 
 ### Prerequisites
-*   [Docker Desktop](https://www.docker.com/products/docker-desktop/) (must be running and accessible via CLI)
-*   Windows OS (for `start_platform.bat`)
+*   **Docker Desktop** (Installed and Running) - Essential for DB and Services.
+*   **Java 17 JDK** (Verified with `java -version`).
+*   **Ports Available**: 3000 (UI), 8080 (Gateway), 5432 (Postgres), 8081-8085 (Services).
 
-### Installation & Launch
+### Step-by-Step Guide
 
-1.  **Clone the repository**.
-2.  **Start the Platform**:
-    Double-click or run `start_platform.bat` script.
-    
-    This script will automatically:
-    *   Detect your Java installation.
-    *   Build all Backend Services (Maven).
-    *   Build and Dockerize the Frontend.
-    *   Start the entire stack using Docker Compose.
-    *   Clean up old conflicting volumes (`docker-compose down -v` logic included).
+1.  **Clone the Repository**
+    ```bash
+    git clone https://github.com/your-username/FLOWBILL.git
+    cd FLOWBILL
+    ```
 
-3.  **Access the Application**:
-    *   **Frontend**: `http://localhost:3000`
-    *   **Microservices Gateway**: `http://localhost:8080/api`
+2.  **Start the Platform**
+    We provide a robust automation script for Windows.
+    *   **Run**: Double-click **`start_platform.bat`** (or run in terminal).
+    *   **What it does**:
+        *   Stops any running containers & removes old volumes (Clean Slate).
+        *   Builds all Maven modules (`mvn clean package`).
+        *   Builds the Frontend Docker image.
+        *   Starts the stack with `docker-compose up -d`.
+        *   Streams logs for immediate feedback.
 
----
+    > **Note**: The first run may take 5-10 minutes to download dependencies and Docker images.
 
-## 🔐 Authentication & Roles
-
-The system implements a hierarchical Role-Based Access Control (RBAC) system:
-
-### 1. Super Admin (`ROLE_SUPER_ADMIN`)
-*   **Description**: Platform owner.
-*   **Default Credentials**: `admin@flowbill.com` / `password`
-*   **Capabilities**:
-    *   Access **Super Admin Dashboard** (`http://localhost:3000/admin`).
-    *   **Create Enterprises (Tenants)**: When creating an enterprise (e.g., "Beta Corp" with schema `tenant_beta`), the system **automatically creates a Tenant Admin (Chef de Projet)** for that enterprise.
-    *   View list of all registered enterprises.
-
-### 2. Tenant Admin / Chef de Projet (`ROLE_ADMIN_ENTREPRISE`)
-*   **Description**: Administrator for a specific Enterprise/Tenant.
-*   **Creation**: Automatically created by Super Admin.
-*   **Capabilities**:
-    *   Access **Enterprise Dashboard** (`http://localhost:3000/tenant-admin`).
-    *   **User Management**: Create standard Users (Employees) for their specific enterprise.
-    *   **Password Management**: Auto-generates passwords for new users and displays them once. Can change their own password.
-
-### 3. User (`ROLE_USER`)
-*   **Description**: Standard employee of a tenant.
-*   **Creation**: Created by their Tenant Admin.
-*   **Capabilities**:
-    *   Access **User Dashboard** (`http://localhost:3000/user`).
-    *   Log in using the credentials provided by their admin.
-    *   **Change Password**: Can change their generated password after login.
-    *   (Coming Soon): Manage tasks and view projects within their tenant scope.
+3.  **Access the Application**
+    *   **Web Interface**: [http://localhost:3000](http://localhost:3000)
+    *   **API Gateway**: [http://localhost:8080](http://localhost:8080)
 
 ---
 
-## 📄 Verified Features
+## 🔐 Security & Roles
 
-### Recent Enhancements
-*   **Full End-to-End Auth Flow**: From Super Admin -> Tenant Admin -> User.
-*   **Frontend Security**: Routes are protected. `ProtectedRoute` component checks both authentication (Token existence) and Authorization (Role verification).
-*   **UI/UX**:
-    *   Modern Tailwind-based UI.
-    *   "Tenant" terminology replaced with "Entreprise" in UI.
-    *   User-friendly forms for creating tenants and users.
-    *   Password change modals.
-*   **Backend Stability**:
-    *   Resolved `UnknownHostException` in Gateway.
-    *   Fixed Flyway checksum mismatches and migration conflicts.
-    *   Configured `tenant-service` to use `db/migration/default` to prevent conflicts with tenant-specific schemas.
+The application is pre-seeded with default accounts for immediate testing.
 
----
+### 1. Super Admin (Platform Owner)
+*   **URL**: `/admin`
+*   **Email**: `admin@flowbill.com`
+*   **Password**: `password`
+*   **Capabilities**: Create "Enterprises" (Tenants), View Platform Stats.
 
-## 📂 Project Structure
+### 2. Tenant Admin (Enterprise Manager)
+*   **URL**: `/tenant-admin`
+*   **Email**: `admin@acme.com` (Default for 'Acme Corp')
+*   **Password**: `password`
+*   **Capabilities**: Create Users (Employees), Manage Projects, View Billing.
 
-```
-FLOWBILL/
-├── common/                 # Shared logic (Security, Multitenancy, Utils)
-├── gateway/                # Spring Cloud Gateway (Routes /api -> Services)
-├── auth-service/           # User & Role Mgmt, JWT, Password Logic
-├── tenant-service/         # Enterprise/Tenant Lifecycle
-├── project-service/        # Projects Domain
-├── frontend/               # React + Tailwind Web App
-├── docker-compose.yml      # Full stack orchestration
-├── start_platform.bat      # Automation script
-└── ...                     # Other microservices
-```
+### 3. User (Employee)
+*   **URL**: `/user`
+*   **Credentials**: Created by Tenant Admin.
+*   **Capabilities**: Log time, View assigned projects.
 
 ---
 
-## 🔮 Roadmap
+## 🔌 API Reference (Endpoints)
 
-*   **Project Module Integration**: Connect User Dashboard to Project Service to list assigned tasks.
-*   **Invoicing**: Enable billing viewing for Tenant Admins.
-*   **Secrets Management**: Externalize sensitive prod secrets (currently dev defaults).
+All API requests should be directed to the **Gateway** (`http://localhost:8080`).
+
+### Authentication (`/api/auth`)
+| Method | Endpoint | Description | Public? |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/auth/login` | Returns JWT Token. | ✅ Yes |
+| `POST` | `/auth/register` | Register new user. | ✅ Yes |
+
+### Tenant Management (`/api/tenants`)
+| Method | Endpoint | Description | Role |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/tenants` | Create a new Enterprise (provisions schema). | `SUPER_ADMIN` |
+| `GET` | `/tenants` | List all registered enterprises. | `SUPER_ADMIN` |
+
+### Projects (`/api/projects`)
+*Context-Aware: Data returned depends on the logged-in user's Tenant.*
+| Method | Endpoint | Description | Role |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/projects` | List projects for MY company. | `ADMIN`, `USER` |
+| `POST` | `/projects` | Create a new project. | `ADMIN` |
 
 ---
-*Generated by Antigravity Agent*
+
+## ⚙️ Configuration & Environment
+
+Configuration is centralized in `application.yml` files but can be overridden by Environment Variables (defined in `docker-compose.yml`).
+
+### Key Variables
+*   **`POSTGRES_HOST`**: Database hostname (`postgres` in Docker network).
+*   **`JWT_SECRET`**: Secret key for signing tokens (`auth-service` and `gateway` must match).
+*   **`SPRING_PROFILES_ACTIVE`**: `docker` (default for containers).
+
+### Database Schemas
+*   **`public`**: Shared cross-tenant data (Users, Roles, Tenants table).
+*   **`tenant_{id}`**: Isolated tenant data (Tables: `projects`, `time_entries`, `invoices`).
+
+---
+
+## 💡 Developer Notes
+
+### Adding a New Service
+1.  Create a new Spring Boot module.
+2.  Add dependencies: `spring-boot-starter-web`, `common` (local module).
+3.  Configure `application.yml` to use `TenantRoutingDataSource`.
+4.  Add Flyway scripts in `db/migration` (V1__init.sql).
+5.  Register in `docker-compose.yml` and `gateway` routes.
+
+### Troubleshooting
+*   **"Missing Table" Error**: The system uses `baseline-on-migrate: true` and `baseline-version: 0`. If you see this, run `start_platform.bat` again to force migration execution.
+*   **Login Redirect Loop**: Ensure your browser cache is cleared or use Incognito mode if roles were recently changed.
+
+---
+
+*Verified and Documented by Antigravity Agent*
