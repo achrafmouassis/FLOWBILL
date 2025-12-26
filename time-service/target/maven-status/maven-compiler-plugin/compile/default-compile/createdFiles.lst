@@ -1,0 +1,8 @@
+com\flowbill\time\controller\TimeController.class
+com\flowbill\time\config\DataSourceConfig.class
+com\flowbill\time\config\MultiTenantDataSource.class
+com\flowbill\time\config\TenantContext.class
+com\flowbill\time\config\TenantFilter.class
+com\flowbill\time\entity\TimeEntry.class
+com\flowbill\time\repository\TimeEntryRepository.class
+com\flowbill\time\TimeApplication.class

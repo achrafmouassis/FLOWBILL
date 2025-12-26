@@ -1,0 +1,178 @@
+services:
+  postgres:
+    image: postgres:15
+    container_name: postgres-master
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - flowbill-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  auth-service:
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+    container_name: auth-service
+    environment:
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      JWT_SECRET: ${JWT_SECRET}
+    env_file:
+      - .env
+    ports:
+      - "8081:8081"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - flowbill-network
+
+  tenant-service:
+    build:
+      context: ./tenant-service
+      dockerfile: Dockerfile
+    container_name: tenant-service
+    environment:
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      TENANT_DB_HOST: ${TENANT_DB_HOST}
+      TENANT_DB_PORT: ${TENANT_DB_PORT}
+    env_file:
+      - .env
+    ports:
+      - "8082:8082"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - flowbill-network
+
+  project-service:
+    build:
+      context: ./project-service
+      dockerfile: Dockerfile
+    container_name: project-service
+    environment:
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      JWT_SECRET: ${JWT_SECRET}
+      SERVICE_TENANT_URL: ${SERVICE_TENANT_URL}
+    env_file:
+      - .env
+    ports:
+      - "8083:8083"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
+    networks:
+      - flowbill-network
+
+  time-service:
+    build:
+      context: ./time-service
+      dockerfile: Dockerfile
+    container_name: time-service
+    environment:
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      JWT_SECRET: ${JWT_SECRET}
+      SERVICE_PROJECT_URL: ${SERVICE_PROJECT_URL}
+    env_file:
+      - .env
+    ports:
+      - "8084:8084"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      project-service:
+        condition: service_started
+    networks:
+      - flowbill-network
+
+  gateway:
+    build:
+      context: ./gateway
+      dockerfile: Dockerfile
+    container_name: gateway
+    environment:
+      JWT_SECRET: ${JWT_SECRET}
+      SERVICE_AUTH_URL: ${SERVICE_AUTH_URL}
+      SERVICE_TENANT_URL: ${SERVICE_TENANT_URL}
+      SERVICE_PROJECT_URL: ${SERVICE_PROJECT_URL}
+      SERVICE_TIME_URL: ${SERVICE_TIME_URL}
+      SERVICE_BILLING_URL: ${SERVICE_BILLING_URL}
+    env_file:
+      - .env
+    ports:
+      - "8080:8080"
+    depends_on:
+      - auth-service
+      - tenant-service
+      - project-service
+      - time-service
+      - billing-service
+    networks:
+      - flowbill-network
+
+  billing-service:
+    build:
+      context: ./billing-service
+      dockerfile: Dockerfile
+    container_name: billing-service
+    environment:
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      JWT_SECRET: ${JWT_SECRET}
+      SERVICE_TIME_URL: ${SERVICE_TIME_URL}
+    env_file:
+      - .env
+    ports:
+      - "8085:8085"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      time-service:
+        condition: service_started
+    networks:
+      - flowbill-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - gateway
+    networks:
+      - flowbill-network
+
+networks:
+  flowbill-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

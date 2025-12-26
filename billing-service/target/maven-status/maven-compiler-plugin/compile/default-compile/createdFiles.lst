@@ -1,0 +1,8 @@
+com\flowbill\billing\config\MultiTenantDataSource.class
+com\flowbill\billing\config\DataSourceConfig.class
+com\flowbill\billing\config\TenantFilter.class
+com\flowbill\billing\entity\Invoice.class
+com\flowbill\billing\repository\InvoiceRepository.class
+com\flowbill\billing\BillingApplication.class
+com\flowbill\billing\controller\InvoiceController.class
+com\flowbill\billing\config\TenantContext.class

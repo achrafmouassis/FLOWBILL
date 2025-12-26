@@ -1,0 +1,17 @@
+server:
+  port: 8086
+
+spring:
+  application:
+    name: reporting-service
+  jpa:
+    hibernate:
+      ddl-auto: validate # Read-only, so validate schema exists
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+spring.datasource:
+  url: jdbc:postgresql://localhost:5432/flowbill_master
+  username: admin
+  password: password

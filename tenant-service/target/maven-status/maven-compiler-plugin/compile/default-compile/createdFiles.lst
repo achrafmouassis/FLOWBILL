@@ -1,0 +1,7 @@
+com\flowbill\tenant\service\TenantService.class
+com\flowbill\tenant\entity\Tenant.class
+com\flowbill\tenant\config\TenantDataSeeder.class
+com\flowbill\tenant\TenantApplication.class
+com\flowbill\tenant\controller\TenantController.class
+com\flowbill\tenant\repository\TenantRepository.class
+com\flowbill\tenant\service\TenantMigrationService.class

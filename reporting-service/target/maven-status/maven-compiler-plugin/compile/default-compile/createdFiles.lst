@@ -1,0 +1,6 @@
+com\flowbill\reporting\ReportingApplication.class
+com\flowbill\reporting\controller\DashboardController.class
+com\flowbill\reporting\config\TenantContext.class
+com\flowbill\reporting\config\DataSourceConfig.class
+com\flowbill\reporting\config\TenantFilter.class
+com\flowbill\reporting\config\MultiTenantDataSource.class

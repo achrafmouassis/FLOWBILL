@@ -1,0 +1,10 @@
+com\flowbill\project\config\DataSourceConfig.class
+com\flowbill\project\entity\Project.class
+com\flowbill\project\controller\ProjectController.class
+com\flowbill\project\entity\Task.class
+com\flowbill\project\config\TenantFilter.class
+com\flowbill\project\config\MultiTenantDataSource.class
+com\flowbill\project\repository\ProjectRepository.class
+com\flowbill\project\ProjectApplication.class
+com\flowbill\project\config\TenantContext.class
+com\flowbill\project\repository\TaskRepository.class

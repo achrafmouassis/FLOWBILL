@@ -1,0 +1,15 @@
+com\flowbill\auth\entity\User.class
+com\flowbill\auth\controller\AuthController$RegisterRequest.class
+com\flowbill\auth\controller\AuthController.class
+com\flowbill\auth\controller\AuthController$AuthResponse.class
+com\flowbill\auth\config\DataSeeder.class
+com\flowbill\auth\entity\Role$RoleName.class
+com\flowbill\auth\controller\AuthController$AuthRequest.class
+com\flowbill\auth\service\AuthService.class
+com\flowbill\auth\repository\RoleRepository.class
+com\flowbill\auth\config\SecurityConfig.class
+com\flowbill\auth\controller\AuthController$ChangePasswordRequest.class
+com\flowbill\auth\AuthApplication.class
+com\flowbill\auth\util\JwtUtil.class
+com\flowbill\auth\entity\Role.class
+com\flowbill\auth\repository\UserRepository.class

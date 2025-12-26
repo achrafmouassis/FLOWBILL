@@ -1,0 +1,36 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: gateway
+  cloud:
+    gateway:
+      routes:
+        - id: auth-service
+          uri: ${SERVICE_AUTH_URL}
+          predicates:
+            - Path=/auth/**
+        - id: tenant-service
+          uri: ${SERVICE_TENANT_URL}
+          predicates:
+            - Path=/tenants/**
+        - id: project-service
+          uri: ${SERVICE_PROJECT_URL}
+          predicates:
+            - Path=/projects/**
+        - id: time-service
+          uri: ${SERVICE_TIME_URL}
+          predicates:
+            - Path=/times/**
+        - id: billing-service
+          uri: ${SERVICE_BILLING_URL}
+          predicates:
+            - Path=/billing/**
+        - id: reporting-service
+          uri: ${SERVICE_REPORTING_URL:http://localhost:8086} # Optional service
+          predicates:
+            - Path=/reports/**
+
+jwt:
+  secret: ${JWT_SECRET}

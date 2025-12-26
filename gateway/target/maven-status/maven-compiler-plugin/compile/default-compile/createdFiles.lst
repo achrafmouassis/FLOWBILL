@@ -1,0 +1,3 @@
+com\flowbill\gateway\filter\JwtAuthenticationFilter$Config.class
+com\flowbill\gateway\GatewayApplication.class
+com\flowbill\gateway\filter\JwtAuthenticationFilter.class
