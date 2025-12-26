@@ -12,10 +12,10 @@ The system follows a strict distributed systems pattern where domain responsibil
 ```mermaid
 graph TD
     User((User)) -->|HTTPS| Nginx["Frontend (React)"]
-    Nginx -->|API Calls (start with /api)| Gateway["API Gateway (Spring Cloud)"]
+    Nginx -->|API Calls /api| Gateway["API Gateway (Spring Cloud)"]
     
     subgraph "Backend Services (Private Network)"
-        Gateway -->|Auth & JWT| AuthService["Auth Service"]
+        Gateway -->|Auth and JWT| AuthService["Auth Service"]
         Gateway -->|Tenant Mgmt| TenantService["Tenant Service"]
         Gateway -->|Projects| ProjectService["Project Service"]
         Gateway -->|Time Tracking| TimeService["Time Service"]
