@@ -11,19 +11,19 @@ The system follows a strict distributed systems pattern where domain responsibil
 ### Global System Design
 ```mermaid
 graph TD
-    User((User)) -->|HTTPS| Nginx[Frontend (React)]
-    Nginx -->|API Calls (start with /api)| Gateway[API Gateway (Spring Cloud)]
+    User((User)) -->|HTTPS| Nginx["Frontend (React)"]
+    Nginx -->|API Calls (start with /api)| Gateway["API Gateway (Spring Cloud)"]
     
     subgraph "Backend Services (Private Network)"
-        Gateway -->|Auth & JWT| AuthService[Auth Service]
-        Gateway -->|Tenant Mgmt| TenantService[Tenant Service]
-        Gateway -->|Projects| ProjectService[Project Service]
-        Gateway -->|Time Tracking| TimeService[Time Service]
-        Gateway -->|Billing| BillingService[Billing Service]
+        Gateway -->|Auth & JWT| AuthService["Auth Service"]
+        Gateway -->|Tenant Mgmt| TenantService["Tenant Service"]
+        Gateway -->|Projects| ProjectService["Project Service"]
+        Gateway -->|Time Tracking| TimeService["Time Service"]
+        Gateway -->|Billing| BillingService["Billing Service"]
     end
 
     subgraph "Data Layer"
-        AuthService -->|Schema: public| DB[(PostgreSQL)]
+        AuthService -->|Schema: public| DB[("PostgreSQL")]
         TenantService -->|Schema: public| DB
         ProjectService -->|Schema: tenant_id| DB
         TimeService -->|Schema: tenant_id| DB
