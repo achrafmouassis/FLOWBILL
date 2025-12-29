@@ -131,6 +131,7 @@ services:
       - project-service
       - time-service
       - billing-service
+      - reporting-service
     networks:
       - flowbill-network
 
@@ -155,6 +156,27 @@ services:
         condition: service_healthy
       time-service:
         condition: service_started
+    networks:
+      - flowbill-network
+
+  reporting-service:
+    build:
+      context: ./reporting-service
+      dockerfile: Dockerfile
+    container_name: reporting-service
+    environment:
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      JWT_SECRET: ${JWT_SECRET}
+    env_file:
+      - .env
+    ports:
+      - "8086:8086"
+    depends_on:
+      postgres:
+        condition: service_healthy
     networks:
       - flowbill-network
 

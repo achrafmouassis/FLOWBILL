@@ -21,10 +21,11 @@ public class JwtUtil {
     @Value("${jwt.expiration}")
     private long expiration;
 
-    public String generateToken(String username, String role, String tenantId) {
+    public String generateToken(String username, String role, String tenantId, Long userId) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("roles", java.util.List.of(role));
         claims.put("tenantId", tenantId);
+        claims.put("userId", userId);
 
         Key key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
 

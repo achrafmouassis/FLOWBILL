@@ -10,9 +10,11 @@ public class BillingApplication {
     public static void main(String[] args) {
         SpringApplication.run(BillingApplication.class, args);
     }
-    
+
     @Bean
     public RestTemplate restTemplate() {
-        return new RestTemplate();
+        RestTemplate restTemplate = new RestTemplate();
+        restTemplate.getInterceptors().add(new com.flowbill.common.multitenancy.TenantContextInterceptor());
+        return restTemplate;
     }
 }

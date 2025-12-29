@@ -13,6 +13,8 @@ public class TimeApplication {
 
     @Bean
     public RestTemplate restTemplate() {
-        return new RestTemplate();
+        RestTemplate restTemplate = new RestTemplate();
+        restTemplate.getInterceptors().add(new com.flowbill.common.multitenancy.TenantContextInterceptor());
+        return restTemplate;
     }
 }

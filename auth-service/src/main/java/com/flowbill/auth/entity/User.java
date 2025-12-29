@@ -36,6 +36,13 @@ public class User {
     // The Prompt LISTS "user_tenant" as a table. So we will map it.
 
     @Column(name = "tenant_id")
-    private String tenantId; // FK to tenants table (managed by logic since Tenant is in same DB but maybe
-                             // diff module context)
+    private String tenantId;
+
+    @Column(name = "full_name")
+    private String fullName;
+
+    private String telephone;
+
+    @Column(columnDefinition = "TEXT")
+    private String competencies;
 }

@@ -33,8 +33,12 @@ public class AuthController {
     public static class RegisterRequest {
         private String email;
         private String password;
-        private String tenantId; // Optional for Super Admin
-        private String role; // ADMIN_ENTREPRISE, USER
+        private String tenantId;
+        private String role;
+        private String fullName;
+        private String telephone;
+        // Competencies grouped by category: { "Langages": ["Java", "Python"], ... }
+        private java.util.Map<String, java.util.List<String>> competencies;
     }
 
     @Data
@@ -63,6 +67,13 @@ public class AuthController {
     @GetMapping("/users/{tenantId}")
     public java.util.List<User> getUsersByTenant(@PathVariable String tenantId) {
         return authService.getUsersByTenant(tenantId);
+    }
+
+    @PatchMapping("/users/{userId}/competencies")
+    public void updateCompetencies(
+            @PathVariable Long userId,
+            @RequestBody java.util.Map<String, java.util.List<String>> competencies) {
+        authService.updateCompetencies(userId, competencies);
     }
 
     @Data

@@ -19,18 +19,38 @@ spring:
           uri: ${SERVICE_PROJECT_URL}
           predicates:
             - Path=/projects/**
+          filters:
+            - JwtAuthentication
         - id: time-service
           uri: ${SERVICE_TIME_URL}
           predicates:
             - Path=/times/**
+          filters:
+            - JwtAuthentication
         - id: billing-service
           uri: ${SERVICE_BILLING_URL}
           predicates:
             - Path=/billing/**
+          filters:
+            - JwtAuthentication
         - id: reporting-service
-          uri: ${SERVICE_REPORTING_URL:http://localhost:8086} # Optional service
+          uri: ${SERVICE_REPORTING_URL}
           predicates:
             - Path=/reports/**
+          filters:
+            - JwtAuthentication
+        - id: project-activity
+          uri: ${SERVICE_PROJECT_URL}
+          predicates:
+            - Path=/activity/**
+          filters:
+            - JwtAuthentication
+        - id: project-sprints
+          uri: ${SERVICE_PROJECT_URL}
+          predicates:
+            - Path=/sprints/**
+          filters:
+            - JwtAuthentication
 
 jwt:
   secret: ${JWT_SECRET}

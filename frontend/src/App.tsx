@@ -3,6 +3,7 @@ import LoginPage from './pages/LoginPage';
 import SuperAdminDashboard from './pages/SuperAdminDashboard';
 import TenantAdminDashboard from './pages/TenantAdminDashboard';
 import UserDashboard from './pages/UserDashboard';
+import ProjectDetailPage from './pages/ProjectDetailPage';
 import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
@@ -15,8 +16,9 @@ function App() {
           <Route path="/admin" element={<SuperAdminDashboard />} />
         </Route>
 
-        <Route element={<ProtectedRoute allowedRoles={['ROLE_ADMIN_ENTREPRISE']} />}>
+        <Route element={<ProtectedRoute allowedRoles={['ROLE_ADMIN_ENTREPRISE', 'ROLE_USER']} />}>
           <Route path="/tenant-admin" element={<TenantAdminDashboard />} />
+          <Route path="/projects/:id" element={<ProjectDetailPage />} />
         </Route>
 
         <Route element={<ProtectedRoute allowedRoles={['ROLE_USER']} />}>

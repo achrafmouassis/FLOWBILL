@@ -1,6 +1,12 @@
 com\flowbill\reporting\ReportingApplication.class
+com\flowbill\reporting\config\SecurityConfig.class
 com\flowbill\reporting\controller\DashboardController.class
+com\flowbill\reporting\dto\TeamCapacityResponse.class
+com\flowbill\reporting\config\MultiTenantDataSource.class
+com\flowbill\reporting\dto\VelocityResponse.class
+com\flowbill\reporting\exception\GlobalExceptionHandler.class
 com\flowbill\reporting\config\TenantContext.class
 com\flowbill\reporting\config\DataSourceConfig.class
 com\flowbill\reporting\config\TenantFilter.class
-com\flowbill\reporting\config\MultiTenantDataSource.class
+com\flowbill\reporting\dto\AlertResponse.class
+com\flowbill\reporting\config\SecurityConfig$HeaderAuthenticationFilter.class

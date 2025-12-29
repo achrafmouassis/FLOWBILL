@@ -1,0 +1,3 @@
+ALTER TABLE users ADD COLUMN full_name VARCHAR(255);
+ALTER TABLE users ADD COLUMN telephone VARCHAR(50);
+ALTER TABLE users ADD COLUMN competencies TEXT;

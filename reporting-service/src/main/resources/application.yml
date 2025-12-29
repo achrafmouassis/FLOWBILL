@@ -4,6 +4,8 @@ server:
 spring:
   application:
     name: reporting-service
+  flyway:
+    enabled: false
   jpa:
     hibernate:
       ddl-auto: validate # Read-only, so validate schema exists
@@ -12,6 +14,7 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
 spring.datasource:
-  url: jdbc:postgresql://localhost:5432/flowbill_master
-  username: admin
-  password: password
+  url: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT:-5432}/${POSTGRES_DB}
+  username: ${POSTGRES_USER}
+  password: ${POSTGRES_PASSWORD}
+  driver-class-name: org.postgresql.Driver

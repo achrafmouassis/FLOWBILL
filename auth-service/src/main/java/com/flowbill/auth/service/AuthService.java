@@ -43,7 +43,7 @@ public class AuthService {
                 .map(role -> role.getName().name())
                 .orElse("ROLE_USER");
 
-        String token = jwtUtil.generateToken(user.getEmail(), roleName, user.getTenantId());
+        String token = jwtUtil.generateToken(user.getEmail(), roleName, user.getTenantId(), user.getId());
         return new AuthResponse(token);
     }
 
@@ -56,15 +56,36 @@ public class AuthService {
         user.setEmail(req.getEmail());
         user.setPassword(passwordEncoder.encode(req.getPassword()));
         user.setTenantId(req.getTenantId());
+        user.setFullName(req.getFullName());
+        user.setTelephone(req.getTelephone());
+
+        // Serialize competencies to JSON
+        if (req.getCompetencies() != null) {
+            try {
+                com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                user.setCompetencies(mapper.writeValueAsString(req.getCompetencies()));
+            } catch (Exception e) {
+                // Log error but maybe don't block registration? Or block?
+                // For now, let's treat it as empty or simple toString if failure, but exception
+                // is better for integrity.
+                throw new RuntimeException("Error converting competencies to JSON", e);
+            }
+        }
 
         Set<Role> roles = new HashSet<>();
         try {
-            Role.RoleName name = Role.RoleName.valueOf("ROLE_" + req.getRole().toUpperCase());
+            String roleStr = req.getRole().toUpperCase();
+            // Map DEVELOPER to USER role
+            if ("DEVELOPER".equals(roleStr)) {
+                roleStr = "USER";
+            }
+
+            Role.RoleName name = Role.RoleName.valueOf("ROLE_" + roleStr);
             Role role = roleRepository.findByName(name)
                     .orElseThrow(() -> new RuntimeException("Role not found"));
             roles.add(role);
         } catch (IllegalArgumentException e) {
-            throw new RuntimeException("Invalid role provided");
+            throw new RuntimeException("Invalid role provided: " + req.getRole());
         }
 
         user.setRoles(roles);
@@ -86,5 +107,18 @@ public class AuthService {
 
     public java.util.List<User> getUsersByTenant(String tenantId) {
         return userRepository.findByTenantId(tenantId);
+    }
+
+    public void updateCompetencies(Long userId, java.util.Map<String, java.util.List<String>> competencies) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        try {
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            user.setCompetencies(mapper.writeValueAsString(competencies));
+            userRepository.save(user);
+        } catch (Exception e) {
+            throw new RuntimeException("Error converting competencies to JSON", e);
+        }
     }
 }

@@ -1,6 +1,8 @@
-com\flowbill\common\config\CommonConfig.class
-com\flowbill\common\multitenancy\TenantRoutingDataSource.class
 com\flowbill\common\multitenancy\HeaderTenantResolver.class
-com\flowbill\common\multitenancy\TenantFilter.class
+com\flowbill\common\multitenancy\TenantContextInterceptor.class
 com\flowbill\common\multitenancy\TenantResolver.class
 com\flowbill\common\multitenancy\TenantContext.class
+com\flowbill\common\config\CommonConfig.class
+com\flowbill\common\multitenancy\TenantConstants.class
+com\flowbill\common\multitenancy\TenantRoutingDataSource.class
+com\flowbill\common\multitenancy\TenantFilter.class
