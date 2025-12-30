@@ -1,69 +1,70 @@
-import { useEffect, useState } from 'react';
-import { reportsService } from '../../api/reportsService';
-import type { VelocityReturn } from '../../types';
+import React, { useEffect, useState } from 'react';
+import {
+    BarChart,
+    Bar,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
+    Legend,
+    ResponsiveContainer
+} from 'recharts';
+import { projectService } from '../../api/projectService';
+import Spinner from '../Spinner';
 
-const VelocityChart = () => {
-    const [data, setData] = useState<VelocityReturn[]>([]);
+interface VelocityChartProps {
+    projectId: number;
+}
+
+const VelocityChart: React.FC<VelocityChartProps> = ({ projectId }) => {
+    const [data, setData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const fetchVelocity = async () => {
+        const fetchData = async () => {
             try {
-                const velocityData = await reportsService.getVelocityChart();
-                setData(velocityData);
-            } catch (error) {
-                console.error("Failed to fetch velocity", error);
+                const result = await projectService.getVelocityChart(projectId);
+                // Transform API data structure to Recharts format
+                // API: { sprints: [], planned: [], completed: [] }
+                // Recharts: [{ name: 'S1', planned: 20, completed: 18 }, ...]
+                const chartData = result.sprints.map((sprint: string, index: number) => ({
+                    name: sprint,
+                    Planned: result.planned[index],
+                    Completed: result.completed[index]
+                }));
+                setData(chartData);
+            } catch (err) {
+                console.error("Failed to load velocity", err);
             } finally {
                 setLoading(false);
             }
         };
+        fetchData();
+    }, [projectId]);
 
-        fetchVelocity();
-    }, []);
-
-    if (loading) return <div className="h-64 animate-pulse bg-gray-100 rounded"></div>;
-    if (data.length === 0) return <div className="text-gray-500 italic">Pas assez de données pour afficher la vélocité.</div>;
-
-    const maxPoints = Math.max(...data.flatMap(d => [d.committedPoints, d.completedPoints]), 10);
+    if (loading) return <Spinner />;
+    if (!data) return <div className="text-slate-400 text-sm">Aucune donnée disponible</div>;
 
     return (
-        <div className="bg-white p-6 rounded-lg shadow">
-            <h3 className="text-lg font-bold text-gray-800 mb-6">Vélocité de l'Équipe</h3>
-            <div className="flex items-end space-x-8 h-64 border-b border-gray-200 pb-2">
-                {data.map((item) => (
-                    <div key={item.sprintName} className="flex flex-col items-center flex-1 group">
-                        <div className="w-full flex justify-center space-x-2 items-end h-full">
-                            {/* Committed Bar */}
-                            <div
-                                style={{ height: `${(item.committedPoints / maxPoints) * 100}%` }}
-                                className="w-6 bg-gray-300 rounded-t relative group-hover:opacity-80 transition-all"
-                                title={`Engagé: ${item.committedPoints}`}
-                            >
-                                <span className="absolute -top-6 text-xs text-gray-600 w-full text-center">{item.committedPoints}</span>
-                            </div>
-                            {/* Completed Bar */}
-                            <div
-                                style={{ height: `${(item.completedPoints / maxPoints) * 100}%` }}
-                                className="w-6 bg-green-500 rounded-t relative group-hover:opacity-80 transition-all"
-                                title={`Complété: ${item.completedPoints}`}
-                            >
-                                <span className="absolute -top-6 text-xs text-green-700 font-bold w-full text-center">{item.completedPoints}</span>
-                            </div>
-                        </div>
-                        <p className="mt-2 text-xs font-medium text-gray-600 truncate w-full text-center">{item.sprintName}</p>
-                    </div>
-                ))}
-            </div>
-            <div className="mt-4 flex justify-center space-x-6 text-sm">
-                <div className="flex items-center">
-                    <span className="w-3 h-3 bg-gray-300 rounded mr-2"></span>
-                    <span className="text-gray-600">Points Engagés</span>
-                </div>
-                <div className="flex items-center">
-                    <span className="w-3 h-3 bg-green-500 rounded mr-2"></span>
-                    <span className="text-gray-600">Points Complétés</span>
-                </div>
-            </div>
+        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm h-96">
+            <h3 className="font-bold text-slate-700 mb-4 flex items-center justify-between">
+                <span>Vélocité</span>
+                <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full uppercase">Stable</span>
+            </h3>
+            <ResponsiveContainer width="100%" height="85%">
+                <BarChart data={data}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748B' }} dy={10} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748B' }} />
+                    <Tooltip
+                        cursor={{ fill: '#F1F5F9' }}
+                        contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                    />
+                    <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
+                    <Bar dataKey="Planned" fill="#CBD5E1" radius={[4, 4, 0, 0]} barSize={20} />
+                    <Bar dataKey="Completed" fill="#3B82F6" radius={[4, 4, 0, 0]} barSize={20} />
+                </BarChart>
+            </ResponsiveContainer>
         </div>
     );
 };

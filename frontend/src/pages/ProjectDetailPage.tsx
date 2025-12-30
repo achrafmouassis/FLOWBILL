@@ -6,6 +6,10 @@ import ProjectOverview from '../components/project/ProjectOverview';
 import ProjectStatusBadge from '../components/project/ProjectStatusBadge';
 import ProjectTypeIcon from '../components/project/ProjectTypeIcon';
 import Spinner from '../components/Spinner';
+import BacklogView from '../components/backlog/BacklogView';
+import SprintPlanningBoard from '../components/backlog/SprintPlanningBoard';
+import ActiveSprintBoard from '../components/project/ActiveSprintBoard';
+import ReportingTab from '../components/dashboard/ReportingTab';
 import { ChevronLeft, Layout, ListTodo, Layers, Users, BarChart3, Settings } from 'lucide-react';
 
 const ProjectDetailPage: React.FC = () => {
@@ -91,8 +95,8 @@ const ProjectDetailPage: React.FC = () => {
                                     key={tab.name}
                                     onClick={() => setActiveTab(tab.name)}
                                     className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${activeTab === tab.name
-                                            ? 'bg-white text-blue-600 shadow-sm'
-                                            : 'text-slate-500 hover:text-slate-700'
+                                        ? 'bg-white text-blue-600 shadow-sm'
+                                        : 'text-slate-500 hover:text-slate-700'
                                         }`}
                                 >
                                     <tab.icon size={14} />
@@ -108,7 +112,15 @@ const ProjectDetailPage: React.FC = () => {
             <main className="flex-1 max-w-7xl mx-auto px-6 py-8 w-full">
                 {activeTab === 'APERÇU' && <ProjectOverview project={project} />}
 
-                {activeTab !== 'APERÇU' && (
+                {activeTab === 'Backlog' && <BacklogView projectId={project.id} />}
+
+                {activeTab === 'Sprints' && <SprintPlanningBoard projectId={project.id} />}
+
+                {(activeTab === 'Kanban' || activeTab === 'Board') && <ActiveSprintBoard projectId={project.id} />}
+
+                {activeTab === 'Rapports' && <ReportingTab projectId={project.id} />}
+
+                {activeTab !== 'APERÇU' && activeTab !== 'Backlog' && activeTab !== 'Sprints' && activeTab !== 'Kanban' && activeTab !== 'Board' && activeTab !== 'Rapports' && (
                     <div className="bg-white rounded-[2.5rem] p-20 text-center border border-slate-200 border-dashed">
                         <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4 text-slate-300">
                             <Layout size={32} />

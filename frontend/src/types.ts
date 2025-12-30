@@ -79,22 +79,24 @@ export interface Task {
     description?: string;
     status: 'TODO' | 'IN_PROGRESS' | 'DONE';
     priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
-    estimation?: number;
+    estimation?: number; // Story Points
     dueDate?: string;
     projectId: number;
     sprintId?: number;
     sprintName?: string;
     assignedUserId?: number;
-}
-
-export interface TaskRequest {
-    title: string;
-    description?: string;
-    priority?: string;
-    estimation?: number;
-    dueDate?: string;
-    projectId: number;
-    assignedUserId?: number;
+    // Agile Fields
+    type?: string;
+    moscowPriority?: 'MUST_HAVE' | 'SHOULD_HAVE' | 'COULD_HAVE' | 'WONT_HAVE';
+    businessValue?: number;
+    timeCriticality?: number;
+    riskReduction?: number;
+    wsjfScore?: number;
+    manualOrder?: number;
+    parentStoryId?: number;
+    // Dependencies
+    blockingIds?: number[];
+    blockerIds?: number[];
 }
 
 export interface TaskRequest {
@@ -106,7 +108,39 @@ export interface TaskRequest {
     projectId: number;
     sprintId?: number;
     assignedUserId?: number;
+    status?: string;
+    type?: string;
+    moscowPriority?: string;
+    businessValue?: number;
+    timeCriticality?: number;
+    riskReduction?: number;
+    parentStoryId?: number;
 }
+
+export interface StoryCreationRequest {
+    title: string;
+    description: string;
+    estimation: number;
+    moscowPriority: string;
+    businessValue?: number;
+    timeCriticality?: number;
+    riskReduction?: number;
+    projectId: number;
+    sprintId?: number;
+    acceptanceCriteria?: string[];
+    // competencies
+}
+
+export interface BacklogStatistics {
+    totalStories: number;
+    mustHaveCount: number;
+    shouldHaveCount: number;
+    couldHaveCount: number;
+    wontHaveCount: number;
+    averageWsjfScore: number;
+    totalStoryPoints: number;
+}
+
 
 export interface GlobalMetrics {
     activeProjects: number;
@@ -175,4 +209,15 @@ export interface UserDashboardPreferences {
     layoutConfig?: string;
     alertThresholds?: string;
     displaySettings?: string;
+}
+
+export interface Page<T> {
+    content: T[];
+    totalPages: number;
+    totalElements: number;
+    size: number;
+    number: number;
+    first: boolean;
+    last: boolean;
+    empty: boolean;
 }

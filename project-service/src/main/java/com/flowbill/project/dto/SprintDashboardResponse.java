@@ -1,32 +1,37 @@
 package com.flowbill.project.dto;
 
 import lombok.Data;
+import lombok.Builder;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class SprintDashboardResponse {
     private Long id;
     private String name;
     private String goal;
+    private String status;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
+
     private Long projectId;
     private String projectName;
 
-    // Calculated stats
-    private long daysRemaining;
-    private long totalDays;
-    private int progressPercentage;
+    private Long totalDays;
+    private Long daysRemaining;
 
+    // Task Stats
     private int totalTasks;
     private int completedTasks;
+    private int progressPercentage; // Renaming to match service usage if needed, or update service
 
+    // SP Stats
     private int totalStoryPoints;
     private int completedStoryPoints;
 
-    private String riskStatus; // ON_TRACK, AT_RISK, AHEAD
-
-    // Mini Burndown data could be complex, omitting for MVP step 1 or adding simple
-    // list
-    // private List<Integer> burndownData;
+    private String riskStatus; // GREEN, ORANGE, RED
 }

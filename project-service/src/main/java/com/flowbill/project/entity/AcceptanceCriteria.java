@@ -17,6 +17,9 @@ public class AcceptanceCriteria {
     @Column(name = "is_completed")
     private boolean isCompleted;
 
+    @Column(name = "\"order\"")
+    private Integer order;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 

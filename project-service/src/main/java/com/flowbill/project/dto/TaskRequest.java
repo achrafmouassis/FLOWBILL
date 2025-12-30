@@ -16,4 +16,13 @@ public class TaskRequest {
     private String type; // STORY, TASK, BUG
     private Long parentStoryId;
     private String status; // TODO, IN_PROGRESS, DONE, BLOCKED
+
+    // Agile Fields
+    private String moscowPriority;
+    private Integer businessValue;
+    private Integer timeCriticality;
+    private Integer riskReduction;
+    // wsjfScore is calculated, not set directly usually, but can be useful for
+    // overrides
+    private Integer manualOrder;
 }

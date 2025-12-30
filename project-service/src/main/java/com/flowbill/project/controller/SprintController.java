@@ -18,11 +18,17 @@ public class SprintController {
 
     private final SprintService sprintService;
     private final TaskService taskService;
+    private final com.flowbill.project.service.BurndownService burndownService;
 
     @GetMapping("/active-dashboard")
     @org.springframework.security.access.prepost.PreAuthorize("hasAuthority('ROLE_ADMIN_ENTREPRISE')")
     public ResponseEntity<List<com.flowbill.project.dto.SprintDashboardResponse>> getActiveSprints() {
         return ResponseEntity.ok(sprintService.getActiveSprintsWithStats());
+    }
+
+    @GetMapping("/{id}/burndown")
+    public ResponseEntity<com.flowbill.project.dto.BurndownChartDTO> getBurndownChart(@PathVariable Long id) {
+        return ResponseEntity.ok(burndownService.getBurndownChart(id));
     }
 
     @PostMapping("/{sprintId}/complete")
@@ -31,6 +37,12 @@ public class SprintController {
             @RequestBody com.flowbill.project.dto.SprintClosureRequest request) {
         sprintService.completeSprint(sprintId, request);
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{sprintId}/start")
+    @org.springframework.security.access.prepost.PreAuthorize("hasAuthority('ROLE_ADMIN_ENTREPRISE')")
+    public ResponseEntity<SprintResponse> startSprint(@PathVariable Long sprintId) {
+        return ResponseEntity.ok(sprintService.startSprint(sprintId));
     }
 
     @PostMapping("/projects/{projectId}/sprints")

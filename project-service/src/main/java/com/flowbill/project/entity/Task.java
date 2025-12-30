@@ -25,6 +25,25 @@ public class Task {
 
     private String priority; // LOW, MEDIUM, HIGH, CRITICAL
 
+    // Agile / Backlog Management
+    @Column(name = "moscow_priority")
+    private String moscowPriority; // MUST_HAVE, SHOULD_HAVE, COULD_HAVE, WONT_HAVE
+
+    @Column(name = "business_value")
+    private Integer businessValue;
+
+    @Column(name = "time_criticality")
+    private Integer timeCriticality;
+
+    @Column(name = "risk_reduction")
+    private Integer riskReduction;
+
+    @Column(name = "wsjf_score")
+    private java.math.BigDecimal wsjfScore;
+
+    @Column(name = "manual_order")
+    private Integer manualOrder;
+
     private Integer estimation; // Story Points
 
     @Column(name = "due_date")
@@ -50,6 +69,13 @@ public class Task {
     @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
     private java.util.List<AcceptanceCriteria> acceptanceCriteria = new java.util.ArrayList<>();
 
+    // Dependencies
+    @OneToMany(mappedBy = "blocker", fetch = FetchType.LAZY)
+    private java.util.List<TaskDependency> blocking = new java.util.ArrayList<>();
+
+    @OneToMany(mappedBy = "blocked", fetch = FetchType.LAZY)
+    private java.util.List<TaskDependency> blockers = new java.util.ArrayList<>();
+
     @Column(name = "tenant_id")
     private String tenantId;
 
@@ -58,6 +84,11 @@ public class Task {
         createdAt = java.time.LocalDateTime.now();
         updatedAt = java.time.LocalDateTime.now();
         this.tenantId = com.flowbill.project.config.TenantContext.getCurrentTenant();
+
+        // Ensure type default
+        if (this.type == null) {
+            this.type = "TASK";
+        }
     }
 
     @PreUpdate

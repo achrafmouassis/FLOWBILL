@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { reportsService } from '../../api/reportsService';
 import type { SprintDashboardResponse } from '../../types';
-import VelocityChart from './VelocityChart';
 
 interface SprintClosureModalProps {
     sprint: SprintDashboardResponse;
@@ -169,8 +168,7 @@ const ActiveSprints = () => {
                 </div>
             )}
 
-            {/* Velocity Chart Integration */}
-            <VelocityChart />
+            {/* Velocity Chart Integration removed as it requires projectId context */}
 
             {selectedSprint && (
                 <SprintClosureModal

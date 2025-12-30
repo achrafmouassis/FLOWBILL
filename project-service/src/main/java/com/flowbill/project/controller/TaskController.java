@@ -67,11 +67,36 @@ public class TaskController {
 
     @GetMapping("/backlog")
     public ResponseEntity<List<TaskResponse>> getBacklog(@RequestParam Long projectId) {
+        var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        boolean isDev = auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_USER"));
+
+        if (isDev) {
+            Long currentUserId = 0L;
+            if (auth.getDetails() instanceof Long) {
+                currentUserId = (Long) auth.getDetails();
+            } else {
+                return ResponseEntity.ok(List.of());
+            }
+            return ResponseEntity.ok(taskService.getBacklogTasksForDeveloper(projectId, currentUserId));
+        }
+
         return ResponseEntity.ok(taskService.getBacklogTasks(projectId));
     }
 
     @PutMapping("/{taskId}")
     public ResponseEntity<TaskResponse> updateTask(@PathVariable Long taskId, @RequestBody TaskRequest request) {
         return ResponseEntity.ok(taskService.updateTask(taskId, request));
+    }
+
+    @PostMapping("/{taskId}/dependencies")
+    public ResponseEntity<Void> addDependency(@PathVariable Long taskId, @RequestParam Long blockerId) {
+        taskService.addDependency(taskId, blockerId, "BLOCKING");
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/{taskId}/dependencies/{blockerId}")
+    public ResponseEntity<Void> removeDependency(@PathVariable Long taskId, @PathVariable Long blockerId) {
+        taskService.removeDependency(taskId, blockerId);
+        return ResponseEntity.ok().build();
     }
 }

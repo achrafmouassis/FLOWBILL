@@ -22,6 +22,8 @@ public class SprintService {
     private final SprintRepository sprintRepository;
     private final ProjectRepository projectRepository;
     private final TaskRepository taskRepository;
+    private final ActivityLogService activityLogService;
+    private final BurndownService burndownService;
 
     @Transactional
     public SprintResponse createSprint(SprintRequest request) {
@@ -38,6 +40,43 @@ public class SprintService {
         sprint.setStatus(Sprint.SprintStatus.PLANNED);
 
         Sprint savedSprint = sprintRepository.save(sprint);
+        return SprintResponse.fromEntity(savedSprint);
+    }
+
+    @Transactional
+    public SprintResponse startSprint(Long sprintId) {
+        String tenantId = com.flowbill.project.config.TenantContext.getCurrentTenant();
+        Sprint sprint = sprintRepository.findByIdAndTenantId(sprintId, tenantId)
+                .orElseThrow(() -> new RuntimeException("Sprint not found"));
+
+        if (sprint.getStatus() != Sprint.SprintStatus.PLANNED) {
+            throw new RuntimeException("Sprint must be in PLANNED status to start");
+        }
+
+        // Ensure no other sprint is ACTIVE for this project?
+        long activeCount = sprintRepository.findAll().stream()
+                .filter(s -> s.getProject().getId().equals(sprint.getProject().getId())
+                        && s.getStatus() == Sprint.SprintStatus.ACTIVE
+                        && s.getTenantId().equals(tenantId))
+                .count();
+
+        if (activeCount > 0) {
+            throw new RuntimeException("Another sprint is already active for this project. Complete it first.");
+        }
+
+        sprint.setStatus(Sprint.SprintStatus.ACTIVE);
+        // Optional: Reset start date to today if starting late? Or keep planned?
+        // Agile best practice: Start date is "now".
+        // sprint.setStartDate(java.time.LocalDate.now());
+
+        Sprint savedSprint = sprintRepository.save(sprint);
+
+        // Create initial snapshot for Burndown
+        burndownService.createInitialSnapshot(savedSprint.getId());
+
+        activityLogService.logActivity("SPRINT_STARTED", "SPRINT", savedSprint.getId(),
+                "Started sprint: " + savedSprint.getName());
+
         return SprintResponse.fromEntity(savedSprint);
     }
 
@@ -87,6 +126,9 @@ public class SprintService {
         sprint.setStatus(Sprint.SprintStatus.COMPLETED);
         sprint.setEndDate(LocalDateTime.now()); // Set actual end time
         sprintRepository.save(sprint);
+
+        activityLogService.logActivity("SPRINT_COMPLETED", "SPRINT", sprint.getId(),
+                "Completed sprint: " + sprint.getName());
     }
 
     public List<Sprint> getActiveSprints() {

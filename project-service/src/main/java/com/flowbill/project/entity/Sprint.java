@@ -19,6 +19,9 @@ public class Sprint {
     private LocalDateTime endDate;
     private String goal;
 
+    @Column(name = "target_velocity")
+    private Integer targetVelocity;
+
     @Enumerated(EnumType.STRING)
     private SprintStatus status; // PLANNED, ACTIVE, COMPLETED
 
