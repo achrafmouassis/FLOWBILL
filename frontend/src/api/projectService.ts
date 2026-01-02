@@ -7,7 +7,8 @@ import type {
     ProjectDetailed,
     ProjectDashboardStats,
     CreateProjectRequest,
-    Page
+    Page,
+    MySprint
 } from '../types';
 
 export const projectService = {
@@ -105,6 +106,16 @@ export const projectService = {
     },
     getTeamLoad: async (projectId: number) => {
         const response = await api.get<any[]>(`/reports/team-load`, { params: { projectId } });
+        return response.data;
+    },
+
+    // Developer Interfaces
+    getMyTasks: async (filters?: { status?: string[], sprintId?: number, sortBy?: string }) => {
+        const response = await api.get<Task[]>('/tasks/my-tasks', { params: filters });
+        return response.data;
+    },
+    getMySprints: async () => {
+        const response = await api.get<MySprint[]>('/sprints/my-sprints');
         return response.data;
     }
 };

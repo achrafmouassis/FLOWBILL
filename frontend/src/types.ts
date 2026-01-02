@@ -97,6 +97,25 @@ export interface Task {
     // Dependencies
     blockingIds?: number[];
     blockerIds?: number[];
+    
+    // Enhanced relations for dashboard
+    project?: { id: number; name: string; client?: string };
+    sprint?: { id: number; name: string; endDate?: string; daysRemaining?: number };
+    parentStory?: { id: number; title: string; storyPoints?: number };
+}
+
+export interface MySprint {
+    id: number;
+    name: string;
+    status: string;
+    startDate?: string;
+    endDate?: string;
+    goal: string;
+    myTotalTasks: number;
+    myCompletedTasks: number;
+    myCompletionRate: number;
+    myRemainingHours: number;
+    project?: { id: number; name: string; client?: string };
 }
 
 export interface TaskRequest {

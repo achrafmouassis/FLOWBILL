@@ -16,6 +16,9 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+  task:
+    scheduling:
+      enabled: true
 
 # Default Datasource (will be overridden by dynamic routing)
 spring.datasource:

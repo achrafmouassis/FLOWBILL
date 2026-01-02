@@ -1,12 +1,18 @@
+C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\dto\ProjectBriefDTO.java
 C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\dto\SprintClosureRequest.java
 C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\dto\UserDashboardPreferencesDto.java
 C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\repository\TaskHistoryRepository.java
+C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\service\UserService.java
 C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\dto\CreateStoryRequest.java
 C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\entity\Sprint.java
+C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\scheduler\DailySnapshotScheduler.java
 C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\config\ScheduledTasks.java
 C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\dto\CreateTaskRequest.java
 C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\dto\TaskResponse.java
+C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\enums\TaskPriority.java
 C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\repository\UserDashboardPreferencesRepository.java
+C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\dto\MySprintDTO.java
+C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\dto\StoryBriefDTO.java
 C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\entity\TaskHistory.java
 C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\config\TenantContext.java
 C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\dto\BacklogStatisticsDTO.java
@@ -18,6 +24,7 @@ C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\
 C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\service\ActivityLogService.java
 C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\dto\TeamLoadDTO.java
 C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\entity\TaskDependency.java
+C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\enums\TaskStatus.java
 C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\dto\ProjectDashboardStats.java
 C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\controller\TaskController.java
 C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\dto\ReportAlertDTO.java
@@ -26,7 +33,9 @@ C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\
 C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\service\SprintService.java
 C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\repository\TaskRepository.java
 C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\repository\ProjectRepository.java
+C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\dto\SprintBriefDTO.java
 C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\dto\ProjectSummaryDTO.java
+C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\enums\TaskType.java
 C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\dto\TaskRequest.java
 C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\exception\ForbiddenException.java
 C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\ProjectApplication.java
@@ -35,6 +44,7 @@ C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\
 C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\dto\ProjectDTO.java
 C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\controller\ActivityLogController.java
 C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\dto\BurndownChartDTO.java
+C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\service\SprintCapacityService.java
 C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\dto\SprintRequest.java
 C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\dto\StoryCreationRequest.java
 C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\entity\Task.java
@@ -43,6 +53,7 @@ C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\
 C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\exception\GlobalExceptionHandler.java
 C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\controller\DashboardPreferencesController.java
 C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\controller\ProjectController.java
+C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\enums\MoscowPriority.java
 C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\dto\SprintResponse.java
 C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\entity\ActivityLog.java
 C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\dto\ProjectDashboardResponse.java
@@ -53,6 +64,8 @@ C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\
 C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\entity\Project.java
 C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\config\DataSourceConfig.java
 C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\dto\SprintDashboardResponse.java
+C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\config\TenantFilterAspect.java
+C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\service\DependencyCycleDetector.java
 C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\dto\GlobalMetricsDTO.java
 C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\service\ProjectService.java
 C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\exception\BadRequestException.java
@@ -60,6 +73,7 @@ C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\
 C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\controller\ReportController.java
 C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\entity\ProjectTeamMember.java
 C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\dto\CreateTasksBatchRequest.java
+C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\dto\TaskDTO.java
 C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\repository\ActivityLogRepository.java
 C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\entity\SprintSnapshot.java
 C:\Users\HP\Desktop\FLOWBILL\project-service\src\main\java\com\flowbill\project\repository\SprintRepository.java

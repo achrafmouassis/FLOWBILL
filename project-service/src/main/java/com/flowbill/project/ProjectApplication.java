@@ -5,6 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
 @org.springframework.scheduling.annotation.EnableScheduling
+@org.springframework.cache.annotation.EnableCaching
 public class ProjectApplication {
     public static void main(String[] args) {
         SpringApplication.run(ProjectApplication.class, args);

@@ -12,7 +12,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -23,6 +22,7 @@ public class ProjectService {
     private final ProjectRepository projectRepository;
     private final TaskRepository taskRepository;
     private final SprintRepository sprintRepository;
+    private final UserService userService;
 
     @Transactional
     public ProjectDTO createProjectFromWizard(CreateProjectRequest request) {
@@ -76,8 +76,8 @@ public class ProjectService {
         stats.setCompletedCount(
                 projects.stream().filter(p -> p.getStatus() == Project.ProjectStatus.COMPLETED).count());
 
-        stats.setTotalTasks(taskRepository.count()); // Simplification, should be by projects in tenant
-        stats.setActiveSprints(sprintRepository.findByStatus(Sprint.SprintStatus.ACTIVE).size());
+        stats.setTotalTasks(taskRepository.countByTenantId(tenantId));
+        stats.setActiveSprints((int) sprintRepository.countByTenantIdAndStatus(tenantId, Sprint.SprintStatus.ACTIVE));
 
         // teamSize would be distinct user_id in project_team_members for this tenant
         // For MVP, we can approximate or do a custom query
@@ -114,7 +114,7 @@ public class ProjectService {
             mDto.setUserId(m.getUserId());
             mDto.setRole(m.getRole());
             mDto.setCapacityHours(m.getCapacityHours());
-            mDto.setFullName("User " + m.getUserId()); // Placeholder
+            mDto.setFullName(userService.getUserFullName(m.getUserId()));
             return mDto;
         }).collect(Collectors.toList()));
 
@@ -132,14 +132,16 @@ public class ProjectService {
         dto.setStartDate(project.getStartDate());
         dto.setTargetDate(project.getTargetDate());
 
-        long totalTasks = taskRepository.countByProjectId(project.getId());
-        long completedTasks = taskRepository.countByProjectIdAndStatus(project.getId(), "DONE");
+        String tenantId = project.getTenantId();
+        long totalTasks = taskRepository.countByProjectIdAndTenantId(project.getId(), tenantId);
+        long completedTasks = taskRepository.countByProjectIdAndStatusAndTenantId(project.getId(), "DONE", tenantId);
 
         dto.setTaskCount((int) totalTasks);
         dto.setCompletedTaskCount((int) completedTasks);
         dto.setProgress(totalTasks > 0 ? (double) completedTasks / totalTasks : 0.0);
         dto.setActiveSprintsCount(
-                (int) sprintRepository.countByProjectIdAndStatus(project.getId(), Sprint.SprintStatus.ACTIVE));
+                (int) sprintRepository.countByProjectIdAndStatusAndTenantId(project.getId(), Sprint.SprintStatus.ACTIVE,
+                        tenantId));
         dto.setTeamSize(project.getTeam().size());
 
         return dto;

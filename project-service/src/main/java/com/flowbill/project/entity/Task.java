@@ -3,16 +3,28 @@ package com.flowbill.project.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import com.flowbill.project.enums.MoscowPriority;
+import com.flowbill.project.enums.TaskPriority;
+import com.flowbill.project.enums.TaskStatus;
+import com.flowbill.project.enums.TaskType;
+import org.hibernate.annotations.Filter;
+import org.hibernate.annotations.FilterDef;
+import org.hibernate.annotations.ParamDef;
+
 @Entity
 @Table(name = "tasks")
 @Data
+@FilterDef(name = "tenantFilter", parameters = @ParamDef(name = "tenantId", type = String.class))
+@Filter(name = "tenantFilter", condition = "tenant_id = :tenantId")
 public class Task {
     @Id
     private Long id;
 
     private String title;
     private String description;
-    private String status; // TODO, IN_PROGRESS, DONE
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
+    private TaskStatus status = TaskStatus.TODO;
 
     @Column(name = "created_at")
     private java.time.LocalDateTime createdAt;
@@ -21,13 +33,18 @@ public class Task {
     private java.time.LocalDateTime updatedAt;
 
     // MVP Additions
-    private String type = "TASK"; // STORY, TASK, BUG
+    @Enumerated(EnumType.STRING)
+    @Column(name = "type")
+    private TaskType type = TaskType.TASK;
 
-    private String priority; // LOW, MEDIUM, HIGH, CRITICAL
+    @Enumerated(EnumType.STRING)
+    @Column(name = "priority")
+    private TaskPriority priority;
 
     // Agile / Backlog Management
+    @Enumerated(EnumType.STRING)
     @Column(name = "moscow_priority")
-    private String moscowPriority; // MUST_HAVE, SHOULD_HAVE, COULD_HAVE, WONT_HAVE
+    private MoscowPriority moscowPriority;
 
     @Column(name = "business_value")
     private Integer businessValue;
@@ -87,7 +104,7 @@ public class Task {
 
         // Ensure type default
         if (this.type == null) {
-            this.type = "TASK";
+            this.type = TaskType.TASK;
         }
     }
 

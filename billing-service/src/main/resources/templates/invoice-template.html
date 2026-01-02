@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Facture</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 20mm;
+        }
+        
+        body {
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            font-size: 11pt;
+            line-height: 1.4;
+            color: #333;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #2196F3;
+            padding-bottom: 15px;
+        }
+        
+        .company-info {
+            width: 50%;
+            float: left;
+        }
+        
+        .invoice-info {
+            width: 40%;
+            float: right;
+            text-align: right;
+        }
+        
+        .invoice-number {
+            font-size: 18pt;
+            font-weight: bold;
+            color: #2196F3;
+            margin-bottom: 10px;
+        }
+        
+        .client-section {
+            margin: 30px 0;
+            clear: both;
+            padding-top: 20px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        th {
+            background-color: #2196F3;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #E0E0E0;
+        }
+        
+        .text-right {
+            text-align: right;
+        }
+        
+        .totals {
+            margin-top: 30px;
+            float: right;
+            width: 300px;
+        }
+        
+        .totals table {
+            border: none;
+        }
+        
+        .totals td {
+            border: none;
+            padding: 8px;
+        }
+        
+        .total-ht {
+            font-weight: normal;
+        }
+        
+        .total-tva {
+            font-weight: normal;
+        }
+        
+        .total-ttc {
+            font-size: 14pt;
+            font-weight: bold;
+            background-color: #F5F5F5;
+        }
+        
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 9pt;
+            color: #757575;
+            border-top: 1px solid #E0E0E0;
+            padding-top: 10px;
+        }
+    </style></head>
+<body>
+    <!-- En-tête -->
+    <div class="header">
+        <div class="company-info">
+            <h1 style="margin: 0; color: #2196F3;">FLOWBILL</h1>
+            <p style="margin: 5px 0;">
+                <strong th:text="${tenant.name}"></strong><br/>
+                <span th:text="${tenant.address}"></span><br/>
+                <span th:text="${tenant.city + ', ' + tenant.country}"></span><br/>
+                ICE: <span th:text="${tenant.ice}"></span><br/>
+                Téléphone: <span th:text="${tenant.phone}"></span>
+            </p>
+        </div>
+        
+        <div class="invoice-info">
+            <div class="invoice-number" th:text="${invoice.invoiceNumber}"></div>
+            <p style="margin: 5px 0;">
+                <strong>Date d'émission :</strong> 
+                <span th:text="${#temporals.format(invoice.issueDate, 'dd/MM/yyyy')}"></span><br/>
+                <strong>Date d'échéance :</strong> 
+                <span th:text="${#temporals.format(invoice.dueDate, 'dd/MM/yyyy')}"></span>
+            </p>
+        </div>
+    </div>
+    
+    <!-- Informations Client -->
+    <div class="client-section">
+        <h3 style="color: #2196F3; margin-bottom: 10px;">FACTURÉ À :</h3>
+        <p>
+            <strong>Projet ID :</strong> 
+            <span th:text="${invoice.projectId}"></span><br/>
+            <!-- Note: Project details would need fetching via Feign if separate service, simplified here -->
+        </p>
+    </div>
+    
+    <!-- Lignes de Facturation -->
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 50%;">Description</th>
+                <th style="width: 15%;" class="text-right">Quantité</th>
+                <th style="width: 15%;" class="text-right">Prix Unit. (MAD)</th>
+                <th style="width: 20%;" class="text-right">Total HT (MAD)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="line : ${lines}">
+                <td th:text="${line.description}"></td>
+                <td class="text-right" th:text="${line.quantity}"></td>
+                <td class="text-right" th:text="${line.unitPrice}"></td>
+                <td class="text-right" th:text="${line.totalHt}"></td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <!-- Totaux -->
+    <div class="totals">
+        <table>
+            <tr class="total-ht">
+                <td><strong>Total HT :</strong></td>
+                <td class="text-right" th:text="${invoice.amountHt} + ' MAD'"></td>
+            </tr>
+            <tr class="total-tva">
+                <td>
+                    <strong>TVA 
+                        (<span th:text="${invoice.tvaRate}"></span>%) :
+                    </strong>
+                </td>
+                <td class="text-right" th:text="${invoice.tvaAmount} + ' MAD'"></td>
+            </tr>
+            <tr class="total-ttc">
+                <td><strong>TOTAL TTC :</strong></td>
+                <td class="text-right" th:text="${invoice.amountTtc} + ' MAD'"></td>
+            </tr>
+        </table>
+    </div>
+    
+    <div style="clear: both;"></div>
+    
+    <!-- Pied de page -->
+    <div class="footer">
+        <p>
+            Facture générée le <span th:text="${#temporals.format(generatedAt, 'dd/MM/yyyy à HH:mm')}"></span><br/>
+            Merci pour votre confiance.<br/>
+            FLOWBILL - Plateforme de Gestion de Projet Agile
+        </p>
+    </div>
+</body>
+</html>

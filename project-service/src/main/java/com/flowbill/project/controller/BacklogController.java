@@ -3,11 +3,13 @@ package com.flowbill.project.controller;
 import com.flowbill.project.dto.*;
 import com.flowbill.project.entity.AcceptanceCriteria;
 import com.flowbill.project.entity.Task;
+import com.flowbill.project.enums.MoscowPriority;
+import com.flowbill.project.enums.TaskStatus;
+import com.flowbill.project.enums.TaskType;
 import com.flowbill.project.repository.TaskRepository;
 import com.flowbill.project.repository.AcceptanceCriteriaRepository;
 import com.flowbill.project.service.ActivityLogService;
 import com.flowbill.project.service.TaskService;
-import com.flowbill.project.exception.ForbiddenException;
 import com.flowbill.project.exception.NotFoundException;
 import com.flowbill.project.exception.BadRequestException;
 
@@ -51,23 +53,17 @@ public class BacklogController {
                 String role = extractRole(authentication);
                 Long userId = extractUserId(authentication);
 
+                String tenantId = com.flowbill.project.config.TenantContext.getCurrentTenant();
+
                 Page<Task> storiesPage;
                 if ("ROLE_ADMIN_ENTREPRISE".equals(role)) {
                         storiesPage = taskRepository.searchBacklogStories(
-                                        projectId, search, moscow, sprintId, unplanned, pageable);
+                                        projectId, search, moscow, sprintId, unplanned, tenantId, pageable);
                 } else {
-                        // For Developer, original logic was just a list, but for consistency we should
-                        // probably use a paged version.
-                        // However, the searchBacklogStoriesForDeveloper return List.
-                        // If frontend expects Page, we must wrap it or create a paged version in repo.
-                        // Let's wrap for now or check if we should add it.
-                        // Requirement: "Developer : Voit uniquement stories où il a >= 1 tâche
-                        // technique
-                        // assignée"
-                        // For simplicity, let's keep the list for dev or return as Page.
+                        // For Developer, original logic was just a list
                         List<Task> stories = taskRepository.searchBacklogStoriesForDeveloper(
                                         projectId, userId, moscow != null ? List.of(moscow) : null, sprintId, search,
-                                        "wsjf");
+                                        "wsjf", tenantId);
                         storiesPage = new org.springframework.data.domain.PageImpl<>(stories, pageable, stories.size());
                 }
 
@@ -91,26 +87,17 @@ public class BacklogController {
                         @Valid @RequestBody CreateStoryRequest request) {
 
                 Task story = new Task();
-                story.setType("STORY");
+                story.setType(TaskType.STORY);
                 story.setProject(new com.flowbill.project.entity.Project());
-                story.getProject().setId(projectId); // Use repository find if needed for validation, but for creating
-                                                     // linked ID is
-                                                     // enough if cascade/ref works
-                // Better:
-                // Project project = projectRepository.findByIdAndTenantId(projectId,
-                // tenant).orElseThrow();
-                // But projectService probably handles tenant check better. For speed, assume
-                // project exists or catch FK error.
-                // Actually, let's fetch project to be safe and set it.
-                // We need ProjectRepository. I'll inject it or rely on TaskService.
-                // For this controller, I'll inject ProjectRepository for safety or use mapped
-                // entity.
+                story.getProject().setId(projectId);
 
                 story.setTitle(request.getTitle());
                 story.setDescription(request.getDescription());
                 story.setEstimation(request.getEstimation());
-                story.setMoscowPriority(request.getMoscowPriority());
-                story.setStatus("TODO");
+                story.setMoscowPriority(request.getMoscowPriority() != null
+                                ? MoscowPriority.fromString(request.getMoscowPriority())
+                                : null);
+                story.setStatus(TaskStatus.TODO);
 
                 if (request.getBusinessValue() != null) {
                         Integer wsjfScore = calculateWsjf(
@@ -164,7 +151,8 @@ public class BacklogController {
                         @PathVariable Long storyId,
                         @Valid @RequestBody CreateTasksBatchRequest request) {
 
-                Task story = taskRepository.findById(storyId)
+                String tenantId = com.flowbill.project.config.TenantContext.getCurrentTenant();
+                Task story = taskRepository.findByIdAndTenantId(storyId, tenantId)
                                 .orElseThrow(() -> new NotFoundException("Story non trouvée"));
 
                 if (!"STORY".equals(story.getType())) {
@@ -174,13 +162,12 @@ public class BacklogController {
                 List<Task> createdTasks = new ArrayList<>();
                 for (CreateTaskRequest taskReq : request.getTasks()) {
                         Task task = new Task();
-                        task.setType("TASK");
+                        task.setType(TaskType.TASK);
                         task.setParentStory(story);
                         task.setProject(story.getProject());
                         task.setTitle(taskReq.getTitle());
                         task.setDescription(taskReq.getDescription());
-                        // task.setEstimation(taskReq.getEstimationHours()); // Task estimation
-                        task.setStatus("TODO");
+                        task.setStatus(TaskStatus.TODO);
 
                         createdTasks.add(taskRepository.save(task));
                 }

@@ -5,11 +5,17 @@ import lombok.Data;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import org.hibernate.annotations.Filter;
+import org.hibernate.annotations.FilterDef;
+import org.hibernate.annotations.ParamDef;
+
 @Entity
 @Table(name = "sprint_daily_snapshots", uniqueConstraints = {
         @UniqueConstraint(columnNames = { "sprint_id", "snapshot_date" })
 })
 @Data
+@FilterDef(name = "tenantFilter", parameters = @ParamDef(name = "tenantId", type = String.class))
+@Filter(name = "tenantFilter", condition = "tenant_id = :tenantId")
 public class SprintSnapshot {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -36,15 +36,15 @@ public class TaskResponse {
         response.setId(task.getId());
         response.setTitle(task.getTitle());
         response.setDescription(task.getDescription());
-        response.setStatus(task.getStatus());
-        response.setPriority(task.getPriority());
+        response.setStatus(task.getStatus() != null ? task.getStatus().name() : null);
+        response.setPriority(task.getPriority() != null ? task.getPriority().name() : null);
         response.setEstimation(task.getEstimation());
         response.setDueDate(task.getDueDate());
         response.setAssignedUserId(task.getAssignedUserId());
-        response.setType(task.getType());
+        response.setType(task.getType() != null ? task.getType().name() : null);
 
         // Agile Fields
-        response.setMoscowPriority(task.getMoscowPriority());
+        response.setMoscowPriority(task.getMoscowPriority() != null ? task.getMoscowPriority().name() : null);
         response.setBusinessValue(task.getBusinessValue());
         response.setTimeCriticality(task.getTimeCriticality());
         response.setRiskReduction(task.getRiskReduction());

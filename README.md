@@ -114,6 +114,14 @@ The repository is organized as a **Mono-repo** containing all services and the f
     *   **Web Interface**: [http://localhost:3000](http://localhost:3000)
     *   **API Gateway**: [http://localhost:8080](http://localhost:8080)
 
+4.  **Load Seed Data (Optional)**
+    To populate the database with realistic data (2 Tenants, 22 Users, 10 Projects):
+    ```bash
+    bash load_seed_data.sh
+    # Or manually copy data.sql to postgres container and run it
+    ```
+    *See `docs/DEVELOPER_GUIDE.md` for more details.*
+
 ---
 
 ## 🔐 Security & Roles

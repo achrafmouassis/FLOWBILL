@@ -2,6 +2,7 @@ package com.flowbill.project.controller;
 
 import com.flowbill.project.dto.SprintRequest;
 import com.flowbill.project.dto.SprintResponse;
+import com.flowbill.project.dto.MySprintDTO;
 import com.flowbill.project.dto.TaskResponse;
 import com.flowbill.project.service.SprintService;
 import com.flowbill.project.service.TaskService;
@@ -24,6 +25,17 @@ public class SprintController {
     @org.springframework.security.access.prepost.PreAuthorize("hasAuthority('ROLE_ADMIN_ENTREPRISE')")
     public ResponseEntity<List<com.flowbill.project.dto.SprintDashboardResponse>> getActiveSprints() {
         return ResponseEntity.ok(sprintService.getActiveSprintsWithStats());
+    }
+
+    @GetMapping("/my-sprints")
+    @org.springframework.security.access.prepost.PreAuthorize("hasAuthority('ROLE_USER')")
+    public ResponseEntity<List<MySprintDTO>> getMySprints() {
+        var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        Long currentUserId = 0L;
+        if (auth.getDetails() instanceof Long) {
+            currentUserId = (Long) auth.getDetails();
+        }
+        return ResponseEntity.ok(sprintService.getSprintsForDeveloper(currentUserId));
     }
 
     @GetMapping("/{id}/burndown")

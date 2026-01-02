@@ -150,7 +150,7 @@ services:
     env_file:
       - .env
     ports:
-      - "8085:8085"
+      - "8086:8086"
     depends_on:
       postgres:
         condition: service_healthy
@@ -173,7 +173,7 @@ services:
     env_file:
       - .env
     ports:
-      - "8086:8086"
+      - "8087:8086"
     depends_on:
       postgres:
         condition: service_healthy

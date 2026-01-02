@@ -19,11 +19,11 @@ public class TaskDependencyDTO {
         TaskDependencyDTO dto = new TaskDependencyDTO();
         dto.setBlockerId(dep.getBlocker().getId());
         dto.setBlockerTitle(dep.getBlocker().getTitle());
-        dto.setBlockerStatus(dep.getBlocker().getStatus());
+        dto.setBlockerStatus(dep.getBlocker().getStatus() != null ? dep.getBlocker().getStatus().name() : null);
 
         dto.setBlockedId(dep.getBlocked().getId());
         dto.setBlockedTitle(dep.getBlocked().getTitle());
-        dto.setBlockedStatus(dep.getBlocked().getStatus());
+        dto.setBlockedStatus(dep.getBlocked().getStatus() != null ? dep.getBlocked().getStatus().name() : null);
 
         dto.setDependencyType(dep.getDependencyType());
         return dto;

@@ -1,15 +1,27 @@
 package com.flowbill.project.service;
 
+import com.flowbill.project.dto.BacklogStatisticsDTO;
+import com.flowbill.project.dto.StoryCreationRequest;
 import com.flowbill.project.dto.TaskRequest;
 import com.flowbill.project.dto.TaskResponse;
 import com.flowbill.project.entity.Project;
 import com.flowbill.project.entity.Sprint;
 import com.flowbill.project.entity.Task;
 import com.flowbill.project.entity.TaskHistory;
+import com.flowbill.project.enums.MoscowPriority;
+import com.flowbill.project.enums.TaskPriority;
+import com.flowbill.project.enums.TaskStatus;
+import com.flowbill.project.enums.TaskType;
+import com.flowbill.project.dto.TaskDTO;
+import com.flowbill.project.dto.StoryBriefDTO;
+import com.flowbill.project.dto.SprintBriefDTO;
+import com.flowbill.project.dto.ProjectBriefDTO;
 import com.flowbill.project.repository.ProjectRepository;
 import com.flowbill.project.repository.SprintRepository;
 import com.flowbill.project.repository.TaskHistoryRepository;
 import com.flowbill.project.repository.TaskRepository;
+import com.flowbill.project.repository.TaskDependencyRepository;
+import com.flowbill.project.exception.BadRequestException; // Assuming custom exception path
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,7 +37,8 @@ public class TaskService {
     private final ProjectRepository projectRepository;
     private final SprintRepository sprintRepository;
     private final TaskHistoryRepository taskHistoryRepository;
-    private final com.flowbill.project.repository.TaskDependencyRepository taskDependencyRepository;
+    private final TaskDependencyRepository taskDependencyRepository;
+    private final DependencyCycleDetector cycleDetector;
     private final ActivityLogService activityLogService;
 
     @Transactional
@@ -37,23 +50,22 @@ public class TaskService {
         Task task = new Task();
         task.setTitle(request.getTitle());
         task.setDescription(request.getDescription());
-        task.setPriority(request.getPriority());
+        task.setPriority(request.getPriority() != null ? TaskPriority.fromString(request.getPriority()) : null);
         task.setEstimation(request.getEstimation());
         task.setDueDate(request.getDueDate());
         task.setAssignedUserId(request.getAssignedUserId());
         task.setProject(project);
 
-        // Initial Status defaults to TODO (or whatever DB default is)
-        // If request has status, set it.
+        // Initial Status defaults to TODO
         if (request.getStatus() != null) {
-            task.setStatus(request.getStatus());
+            task.setStatus(TaskStatus.fromString(request.getStatus()));
         }
 
         // MVP Additions
         if (request.getType() != null) {
-            task.setType(request.getType());
+            task.setType(TaskType.fromString(request.getType()));
         } else {
-            task.setType("TASK");
+            task.setType(TaskType.TASK);
         }
 
         if (request.getParentStoryId() != null) {
@@ -86,23 +98,24 @@ public class TaskService {
         Task task = taskRepository.findByIdAndTenantId(taskId, tenantId)
                 .orElseThrow(() -> new RuntimeException("Task not found in your tenant"));
 
-        String oldStatus = task.getStatus();
+        String oldStatus = task.getStatus().name(); // Get name for comparison
 
         if (request.getTitle() != null)
             task.setTitle(request.getTitle());
         if (request.getDescription() != null)
             task.setDescription(request.getDescription());
         if (request.getPriority() != null)
-            task.setPriority(request.getPriority());
+            task.setPriority(TaskPriority.fromString(request.getPriority()));
         if (request.getEstimation() != null)
             task.setEstimation(request.getEstimation());
         if (request.getDueDate() != null)
             task.setDueDate(request.getDueDate());
         if (request.getAssignedUserId() != null)
             task.setAssignedUserId(request.getAssignedUserId());
-        if (request.getStatus() != null)
-            task.setStatus(request.getStatus());
 
+        if (request.getStatus() != null) {
+            task.setStatus(TaskStatus.fromString(request.getStatus()));
+        }
         // Update Sprint
         if (request.getSprintId() != null) {
             Sprint sprint = sprintRepository.findByIdAndTenantId(request.getSprintId(), tenantId)
@@ -137,21 +150,24 @@ public class TaskService {
 
     @Transactional(readOnly = true)
     public List<TaskResponse> getTasksBySprint(Long sprintId) {
-        return taskRepository.findBySprintId(sprintId).stream()
+        String tenantId = com.flowbill.project.config.TenantContext.getCurrentTenant();
+        return taskRepository.findBySprintIdAndTenantId(sprintId, tenantId).stream()
                 .map(TaskResponse::fromEntity)
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
     public List<TaskResponse> getBacklogTasks(Long projectId) {
-        return taskRepository.findByProjectIdAndSprintIsNull(projectId).stream()
+        String tenantId = com.flowbill.project.config.TenantContext.getCurrentTenant();
+        return taskRepository.findByProjectIdAndSprintIsNullAndTenantId(projectId, tenantId).stream()
                 .map(TaskResponse::fromEntity)
                 .collect(Collectors.toList());
     }
 
     public List<TaskResponse> getBacklogTasksForDeveloper(Long projectId, Long userId) {
+        String tenantId = com.flowbill.project.config.TenantContext.getCurrentTenant();
         // Only return stories where the developer has assigned tasks
-        return taskRepository.findStoriesWithAssignedTasksForDeveloper(userId).stream()
+        return taskRepository.findStoriesWithAssignedTasksForDeveloper(userId, tenantId).stream()
                 .filter(t -> t.getProject().getId().equals(projectId))
                 .map(TaskResponse::fromEntity)
                 .collect(Collectors.toList());
@@ -159,9 +175,61 @@ public class TaskService {
 
     @Transactional(readOnly = true)
     public List<TaskResponse> getAllTasksMulti(Long projectId) { // Just get all for project
-        return taskRepository.findByProjectId(projectId).stream()
+        String tenantId = com.flowbill.project.config.TenantContext.getCurrentTenant();
+        return taskRepository.findByProjectIdAndTenantId(projectId, tenantId).stream()
                 .map(TaskResponse::fromEntity)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<TaskDTO> getTasksForDeveloper(Long userId, List<String> statusFilters, Long sprintId, String sortBy) {
+        String tenantId = com.flowbill.project.config.TenantContext.getCurrentTenant();
+        List<Task> tasks = taskRepository.findTasksForDeveloper(userId, statusFilters, sprintId, sortBy, tenantId);
+
+        return tasks.stream().map(this::mapToTaskDTO).collect(Collectors.toList());
+    }
+
+    private TaskDTO mapToTaskDTO(Task task) {
+        TaskDTO dto = new TaskDTO();
+        dto.setId(task.getId());
+        dto.setTitle(task.getTitle());
+        dto.setDescription(task.getDescription());
+        dto.setStatus(task.getStatus() != null ? task.getStatus().name() : null);
+        dto.setEstimation(task.getEstimation());
+        dto.setPriority(task.getPriority() != null ? task.getPriority().name() : null);
+        dto.setType(task.getType() != null ? task.getType().name() : null);
+        dto.setCreatedAt(task.getCreatedAt());
+        dto.setUpdatedAt(task.getUpdatedAt());
+
+        if (task.getParentStory() != null) {
+            dto.setParentStory(new StoryBriefDTO(
+                    task.getParentStory().getId(),
+                    task.getParentStory().getTitle(),
+                    task.getParentStory().getEstimation()));
+        }
+
+        if (task.getSprint() != null) {
+            long daysRemaining = 0;
+            if (task.getSprint().getEndDate() != null) {
+                daysRemaining = java.time.time.ChronoUnit.DAYS.between(java.time.LocalDate.now(),
+                        task.getSprint().getEndDate().toLocalDate());
+            }
+            dto.setSprint(new SprintBriefDTO(
+                    task.getSprint().getId(),
+                    task.getSprint().getName(),
+                    task.getSprint().getEndDate() != null ? task.getSprint().getEndDate().toLocalDate() : null,
+                    daysRemaining));
+        }
+
+        if (task.getProject() != null) {
+            dto.setProject(new ProjectBriefDTO(
+                    task.getProject().getId(),
+                    task.getProject().getName(),
+                    "Unknown Client" // Placeholder or fetch if Client entity exists/linked
+            ));
+        }
+
+        return dto;
     }
 
     // --- Agile / Backlog Methods ---
@@ -173,16 +241,17 @@ public class TaskService {
                 .orElseThrow(() -> new RuntimeException("Project not found"));
 
         Task story = new Task();
-        story.setType("STORY");
+        story.setType(TaskType.STORY);
         story.setTitle(request.getTitle());
         story.setDescription(request.getDescription());
         story.setEstimation(request.getEstimation());
-        story.setPriority("MEDIUM"); // Default technical priority
-        story.setStatus("TODO");
+        story.setPriority(TaskPriority.MEDIUM); // Default technical priority
+        story.setStatus(TaskStatus.TODO);
         story.setProject(project);
 
         // Agile Fields
-        story.setMoscowPriority(request.getMoscowPriority());
+        story.setMoscowPriority(
+                request.getMoscowPriority() != null ? MoscowPriority.fromString(request.getMoscowPriority()) : null);
         story.setBusinessValue(request.getBusinessValue());
         story.setTimeCriticality(request.getTimeCriticality());
         story.setRiskReduction(request.getRiskReduction());
@@ -273,6 +342,15 @@ public class TaskService {
     @Transactional
     public void addDependency(Long blockedId, Long blockerId, String type) {
         String tenantId = com.flowbill.project.config.TenantContext.getCurrentTenant();
+
+        // Check for dependency cycle BEFORE adding
+        if (cycleDetector.wouldCreateCycle(blockedId, blockerId, tenantId)) {
+            List<Long> cycle = cycleDetector.findCyclePath(blockedId, tenantId);
+            throw new BadRequestException(
+                    String.format("Cannot add dependency: would create a cycle. " +
+                            "Detected cycle path: %s → %s", cycle, blockerId));
+        }
+
         Task blocked = taskRepository.findByIdAndTenantId(blockedId, tenantId)
                 .orElseThrow(() -> new RuntimeException("Blocked task not found"));
         Task blocker = taskRepository.findByIdAndTenantId(blockerId, tenantId)
@@ -311,14 +389,19 @@ public class TaskService {
 
     @Transactional(readOnly = true)
     public com.flowbill.project.dto.BacklogStatisticsDTO calculateBacklogStatistics(Long projectId) {
-        long totalStories = taskRepository.countByProjectIdAndType(projectId, "STORY");
-        long mustHave = taskRepository.countByProjectIdAndTypeAndMoscowPriority(projectId, "STORY", "MUST_HAVE");
-        long shouldHave = taskRepository.countByProjectIdAndTypeAndMoscowPriority(projectId, "STORY", "SHOULD_HAVE");
-        long couldHave = taskRepository.countByProjectIdAndTypeAndMoscowPriority(projectId, "STORY", "COULD_HAVE");
-        long wontHave = taskRepository.countByProjectIdAndTypeAndMoscowPriority(projectId, "STORY", "WONT_HAVE");
-        Long totalSP = taskRepository.sumEstimationByProjectId(projectId);
-        Double avgWsjf = taskRepository.avgWsjfScoreByProjectId(projectId);
-        Long unplanned = taskRepository.countUnplannedStoriesByProjectId(projectId);
+        String tenantId = com.flowbill.project.config.TenantContext.getCurrentTenant();
+        long totalStories = taskRepository.countByProjectIdAndTypeAndTenantId(projectId, "STORY", tenantId);
+        long mustHave = taskRepository.countByProjectIdAndTypeAndMoscowPriorityAndTenantId(projectId, "STORY",
+                "MUST_HAVE", tenantId);
+        long shouldHave = taskRepository.countByProjectIdAndTypeAndMoscowPriorityAndTenantId(projectId, "STORY",
+                "SHOULD_HAVE", tenantId);
+        long couldHave = taskRepository.countByProjectIdAndTypeAndMoscowPriorityAndTenantId(projectId, "STORY",
+                "COULD_HAVE", tenantId);
+        long wontHave = taskRepository.countByProjectIdAndTypeAndMoscowPriorityAndTenantId(projectId, "STORY",
+                "WONT_HAVE", tenantId);
+        Long totalSP = taskRepository.sumEstimationByProjectId(projectId, tenantId);
+        Double avgWsjf = taskRepository.avgWsjfScoreByProjectId(projectId, tenantId);
+        Long unplanned = taskRepository.countUnplannedStoriesByProjectId(projectId, tenantId);
 
         return com.flowbill.project.dto.BacklogStatisticsDTO.builder()
                 .totalStories((int) totalStories)
@@ -330,5 +413,19 @@ public class TaskService {
                 .avgWsjfScore(avgWsjf)
                 .unplannedStories(unplanned != null ? unplanned.intValue() : 0)
                 .build();
+    }
+
+    @Transactional(readOnly = true)
+    public TaskResponse getTaskById(Long taskId, Long userId, boolean isDev) {
+        String tenantId = com.flowbill.project.config.TenantContext.getCurrentTenant();
+        Task task = taskRepository.findByIdAndTenantId(taskId, tenantId)
+                .orElseThrow(() -> new RuntimeException("Task not found"));
+
+        if (isDev && !userId.equals(task.getAssignedUserId())) {
+            throw new org.springframework.security.access.AccessDeniedException(
+                    "You are not allowed to view this task");
+        }
+
+        return TaskResponse.fromEntity(task);
     }
 }

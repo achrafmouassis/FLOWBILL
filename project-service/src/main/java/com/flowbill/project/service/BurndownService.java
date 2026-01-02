@@ -15,7 +15,6 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -27,10 +26,11 @@ public class BurndownService {
 
     @Transactional
     public void createInitialSnapshot(Long sprintId) {
-        Sprint sprint = sprintRepository.findById(sprintId)
+        String tenantId = com.flowbill.project.config.TenantContext.getCurrentTenant();
+        Sprint sprint = sprintRepository.findByIdAndTenantId(sprintId, tenantId)
                 .orElseThrow(() -> new NotFoundException("Sprint non trouvé"));
 
-        Integer totalSP = taskRepository.sumEstimationBySprintId(sprintId);
+        Integer totalSP = taskRepository.sumEstimationBySprintId(sprintId, tenantId);
 
         SprintSnapshot snapshot = new SprintSnapshot();
         snapshot.setSprint(sprint);
@@ -44,7 +44,8 @@ public class BurndownService {
 
     @Transactional
     public void createDailySnapshot(Long sprintId) {
-        Sprint sprint = sprintRepository.findById(sprintId)
+        String tenantId = com.flowbill.project.config.TenantContext.getCurrentTenant();
+        Sprint sprint = sprintRepository.findByIdAndTenantId(sprintId, tenantId)
                 .orElseThrow(() -> new NotFoundException("Sprint non trouvé"));
 
         if (!"ACTIVE".equals(sprint.getStatus())) {
@@ -54,11 +55,11 @@ public class BurndownService {
         LocalDate today = LocalDate.now();
 
         // Current Remaining SP (Total Planned - Completed in this sprint)
-        Integer completedInSprint = taskRepository.sumCompletedStoryPointsBySprintId(sprintId);
+        Integer completedInSprint = taskRepository.sumCompletedStoryPointsBySprintId(sprintId, tenantId);
         // We need total planned at start of sprint. If targetVelocity is used as
         // baseline:
         // Actually, let's use current total estimation in sprint for MVP.
-        Integer totalPlanned = taskRepository.sumEstimationBySprintId(sprintId);
+        Integer totalPlanned = taskRepository.sumEstimationBySprintId(sprintId, tenantId);
         Integer remainingSP = totalPlanned - completedInSprint;
 
         SprintSnapshot snapshot = new SprintSnapshot();
@@ -71,10 +72,12 @@ public class BurndownService {
     }
 
     public BurndownChartDTO getBurndownChart(Long sprintId) {
-        Sprint sprint = sprintRepository.findById(sprintId)
+        String tenantId = com.flowbill.project.config.TenantContext.getCurrentTenant();
+        Sprint sprint = sprintRepository.findByIdAndTenantId(sprintId, tenantId)
                 .orElseThrow(() -> new NotFoundException("Sprint non trouvé"));
 
-        List<SprintSnapshot> snapshots = snapshotRepository.findBySprintIdOrderBySnapshotDateAsc(sprintId);
+        List<SprintSnapshot> snapshots = snapshotRepository.findBySprintIdAndTenantIdOrderBySnapshotDateAsc(sprintId,
+                tenantId);
 
         List<String> dates = new ArrayList<>();
         List<Integer> actual = new ArrayList<>();

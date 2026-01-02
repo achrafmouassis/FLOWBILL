@@ -1,7 +1,6 @@
 package com.flowbill.project.service;
 
 import com.flowbill.project.dto.*;
-import com.flowbill.project.repository.ProjectRepository;
 import com.flowbill.project.repository.SprintRepository;
 import com.flowbill.project.repository.TaskRepository;
 import com.flowbill.project.entity.Task;
@@ -10,10 +9,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
-import java.util.Arrays;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import com.flowbill.project.config.TenantContext;
@@ -22,25 +20,22 @@ import com.flowbill.project.config.TenantContext;
 @RequiredArgsConstructor
 public class ReportService {
 
-        private final ProjectRepository projectRepository;
         private final SprintRepository sprintRepository;
         private final TaskRepository taskRepository;
-        private final SprintService sprintService;
 
         // --- BLOC 1: Global Metrics ---
         public GlobalMetricsDTO getGlobalMetrics(Long projectId) {
-                long activeProjects = 1; // For now single project scope or derived
-                long activeSprints = sprintRepository.countByProjectIdAndStatus(projectId, Sprint.SprintStatus.ACTIVE);
+                String tenantId = TenantContext.getCurrentTenant();
+                long activeProjects = 1; // Simplified for MVP
+                long activeSprints = sprintRepository.countByProjectIdAndStatusAndTenantId(projectId,
+                                Sprint.SprintStatus.ACTIVE, tenantId);
 
-                List<Task> allTasks = taskRepository.findByProjectId(projectId);
+                List<Task> allTasks = taskRepository.findByProjectIdAndTenantId(projectId, tenantId);
                 long todo = allTasks.stream().filter(t -> "TODO".equals(t.getStatus())).count();
                 long inProgress = allTasks.stream().filter(t -> "IN_PROGRESS".equals(t.getStatus())).count();
                 long totalActive = todo + inProgress;
 
-                long backlogStories = taskRepository.countByProjectIdAndStatus(projectId, "TODO"); // Needs refinement
-                                                                                                   // for
-                                                                                                   // Backlog
-                                                                                                   // specifically
+                long backlogStories = taskRepository.countByProjectIdAndStatusAndTenantId(projectId, "TODO", tenantId);
 
                 return GlobalMetricsDTO.builder()
                                 .activeProjects(activeProjects)
@@ -56,10 +51,10 @@ public class ReportService {
                 String tenantId = TenantContext.getCurrentTenant();
 
                 // Get last 5 completed sprints for the project
-                List<com.flowbill.project.entity.Sprint> completedSprints = sprintRepository.findByProjectId(projectId)
+                List<com.flowbill.project.entity.Sprint> completedSprints = sprintRepository
+                                .findByProjectIdAndTenantId(projectId, tenantId)
                                 .stream()
-                                .filter(s -> s.getStatus() == com.flowbill.project.entity.Sprint.SprintStatus.COMPLETED
-                                                && tenantId.equals(s.getTenantId()))
+                                .filter(s -> s.getStatus() == com.flowbill.project.entity.Sprint.SprintStatus.COMPLETED)
                                 .sorted((s1, s2) -> s2.getEndDate().compareTo(s1.getEndDate()))
                                 .limit(5)
                                 .collect(Collectors.toList());
@@ -70,10 +65,10 @@ public class ReportService {
                 List<String> names = completedSprints.stream().map(com.flowbill.project.entity.Sprint::getName)
                                 .collect(Collectors.toList());
                 List<Integer> planned = completedSprints.stream()
-                                .map(s -> taskRepository.sumEstimationBySprintId(s.getId()))
+                                .map(s -> taskRepository.sumEstimationBySprintId(s.getId(), tenantId))
                                 .collect(Collectors.toList());
                 List<Integer> completed = completedSprints.stream()
-                                .map(s -> taskRepository.sumCompletedStoryPointsBySprintId(s.getId()))
+                                .map(s -> taskRepository.sumCompletedStoryPointsBySprintId(s.getId(), tenantId))
                                 .collect(Collectors.toList());
 
                 return VelocityChartDTO.builder()
@@ -90,10 +85,10 @@ public class ReportService {
                 String tenantId = TenantContext.getCurrentTenant();
 
                 // 1. Alert: Active Sprints at risk (Overdue or low progress)
-                List<com.flowbill.project.entity.Sprint> activeSprints = sprintRepository.findByProjectId(projectId)
+                List<com.flowbill.project.entity.Sprint> activeSprints = sprintRepository
+                                .findByProjectIdAndTenantId(projectId, tenantId)
                                 .stream()
-                                .filter(s -> s.getStatus() == com.flowbill.project.entity.Sprint.SprintStatus.ACTIVE
-                                                && tenantId.equals(s.getTenantId()))
+                                .filter(s -> s.getStatus() == com.flowbill.project.entity.Sprint.SprintStatus.ACTIVE)
                                 .collect(Collectors.toList());
 
                 LocalDateTime now = LocalDateTime.now();
@@ -105,8 +100,9 @@ public class ReportService {
                                                 .severity("CRITICAL")
                                                 .build());
                         } else {
-                                long totalSP = taskRepository.sumEstimationBySprintId(sprint.getId());
-                                long completedSP = taskRepository.sumCompletedStoryPointsBySprintId(sprint.getId());
+                                long totalSP = taskRepository.sumEstimationBySprintId(sprint.getId(), tenantId);
+                                long completedSP = taskRepository.sumCompletedStoryPointsBySprintId(sprint.getId(),
+                                                tenantId);
                                 if (totalSP > 0 && (completedSP * 100.0 / totalSP) < 20
                                                 && ChronoUnit.DAYS.between(sprint.getStartDate(), now) > 3) {
                                         alerts.add(ReportAlertDTO.builder()
@@ -119,8 +115,8 @@ public class ReportService {
                 }
 
                 // 2. Alert: Blocked tasks
-                long blockedCount = taskRepository.findByProjectId(projectId).stream()
-                                .filter(t -> "BLOCKED".equals(t.getStatus()) && tenantId.equals(t.getTenantId()))
+                long blockedCount = taskRepository.findByProjectIdAndTenantId(projectId, tenantId).stream()
+                                .filter(t -> "BLOCKED".equals(t.getStatus()))
                                 .count();
                 if (blockedCount > 0) {
                         alerts.add(ReportAlertDTO.builder()

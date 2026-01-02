@@ -8,15 +8,17 @@ import org.springframework.data.repository.query.Param;
 public interface TaskRepository extends JpaRepository<Task, Long> {
         java.util.Optional<Task> findByIdAndTenantId(Long id, String tenantId);
 
-        java.util.List<Task> findByProjectId(Long projectId);
+        long countByTenantId(String tenantId);
 
-        java.util.List<Task> findBySprintId(Long sprintId);
+        java.util.List<Task> findByProjectIdAndTenantId(Long projectId, String tenantId);
 
-        java.util.List<Task> findByProjectIdAndSprintIsNull(Long projectId);
+        java.util.List<Task> findBySprintIdAndTenantId(Long sprintId, String tenantId);
 
-        long countByProjectId(Long projectId);
+        java.util.List<Task> findByProjectIdAndSprintIsNullAndTenantId(Long projectId, String tenantId);
 
-        long countByProjectIdAndStatus(Long projectId, String status);
+        long countByProjectIdAndTenantId(Long projectId, String tenantId);
+
+        long countByProjectIdAndStatusAndTenantId(Long projectId, String status, String tenantId);
 
         // Agile / Backlog Queries
 
@@ -28,6 +30,7 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
                         "AND (:moscow IS NULL OR t.moscowPriority = :moscow) " +
                         "AND (:sprintId IS NULL OR t.sprint.id = :sprintId) " +
                         "AND (:unplanned = true AND t.sprint IS NULL OR :unplanned = false) " +
+                        "AND t.tenantId = :tenantId " +
                         "ORDER BY t.wsjfScore DESC NULLS LAST, t.manualOrder ASC", countQuery = "SELECT COUNT(t) FROM Task t "
                                         +
                                         "WHERE t.project.id = :projectId " +
@@ -36,16 +39,19 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
                                         +
                                         "AND (:moscow IS NULL OR t.moscowPriority = :moscow) " +
                                         "AND (:sprintId IS NULL OR t.sprint.id = :sprintId) " +
-                                        "AND (:unplanned = true AND t.sprint IS NULL OR :unplanned = false)")
+                                        "AND (:unplanned = true AND t.sprint IS NULL OR :unplanned = false) " +
+                                        "AND t.tenantId = :tenantId")
         org.springframework.data.domain.Page<Task> searchBacklogStories(@Param("projectId") Long projectId,
                         @Param("search") String search,
                         @Param("moscow") String moscow,
                         @Param("sprintId") Long sprintId,
                         @Param("unplanned") Boolean unplanned,
+                        @Param("tenantId") String tenantId,
                         org.springframework.data.domain.Pageable pageable);
 
-        @Query("SELECT t FROM Task t WHERE t.project.id = :projectId AND t.type = 'STORY'")
-        java.util.List<Task> findAllStoriesByProject(@Param("projectId") Long projectId);
+        @Query("SELECT t FROM Task t WHERE t.project.id = :projectId AND t.type = 'STORY' AND t.tenantId = :tenantId")
+        java.util.List<Task> findAllStoriesByProject(@Param("projectId") Long projectId,
+                        @Param("tenantId") String tenantId);
 
         // --- New Agile Queries ---
 
@@ -57,6 +63,7 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
                         +
                         "AND (:search IS NULL OR LOWER(t.title) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(t.description) LIKE LOWER(CONCAT('%', :search, '%'))) "
                         +
+                        "AND t.tenantId = :tenantId " +
                         "ORDER BY CASE WHEN :sort = 'wsjf' THEN t.wsjfScore ELSE 0 END DESC, " +
                         "CASE WHEN :sort = 'moscow' THEN " +
                         "  CASE t.moscowPriority WHEN 'MUST_HAVE' THEN 1 WHEN 'SHOULD_HAVE' THEN 2 WHEN 'COULD_HAVE' THEN 3 WHEN 'WONT_HAVE' THEN 4 ELSE 5 END "
@@ -69,7 +76,8 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
                         @Param("moscow") java.util.List<String> moscow,
                         @Param("sprintId") Long sprintId,
                         @Param("search") String search,
-                        @Param("sort") String sort);
+                        @Param("sort") String sort,
+                        @Param("tenantId") String tenantId);
 
         @Query("SELECT DISTINCT t FROM Task t " +
                         "WHERE t.project.id = :projectId " +
@@ -81,6 +89,7 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
                         +
                         "AND (:search IS NULL OR LOWER(t.title) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(t.description) LIKE LOWER(CONCAT('%', :search, '%'))) "
                         +
+                        "AND t.tenantId = :tenantId " +
                         "ORDER BY CASE WHEN :sort = 'wsjf' THEN t.wsjfScore ELSE 0 END DESC, " +
                         "CASE WHEN :sort = 'moscow' THEN " +
                         "  CASE t.moscowPriority WHEN 'MUST_HAVE' THEN 1 WHEN 'SHOULD_HAVE' THEN 2 WHEN 'COULD_HAVE' THEN 3 WHEN 'WONT_HAVE' THEN 4 ELSE 5 END "
@@ -93,36 +102,63 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
                         @Param("moscow") java.util.List<String> moscow,
                         @Param("sprintId") Long sprintId,
                         @Param("search") String search,
-                        @Param("sort") String sort);
+                        @Param("sort") String sort,
+                        @Param("tenantId") String tenantId);
 
         @Query("SELECT DISTINCT t FROM Task t " +
                         "WHERE t.type = 'STORY' " +
                         "AND t.sprint IS NULL " +
+                        "AND t.tenantId = :tenantId " +
                         "AND EXISTS (SELECT 1 FROM Task child WHERE child.parentStory = t AND child.assignedUserId = :userId)")
-        java.util.List<Task> findStoriesWithAssignedTasksForDeveloper(@Param("userId") Long userId);
+        java.util.List<Task> findStoriesWithAssignedTasksForDeveloper(@Param("userId") Long userId,
+                        @Param("tenantId") String tenantId);
 
-        @Query("SELECT t FROM Task t WHERE t.id IN (SELECT td.blocker.id FROM TaskDependency td WHERE td.blocked.id = :taskId)")
-        java.util.List<Task> findBlockersForTask(@Param("taskId") Long taskId);
+        @Query("SELECT t FROM Task t WHERE t.id IN (SELECT td.blocker.id FROM TaskDependency td WHERE td.blocked.id = :taskId) AND t.tenantId = :tenantId")
+        java.util.List<Task> findBlockersForTask(@Param("taskId") Long taskId, @Param("tenantId") String tenantId);
 
-        @Query("SELECT COALESCE(SUM(t.estimation), 0) FROM Task t WHERE t.sprint.id = :sprintId AND t.type = 'STORY'")
-        Integer sumEstimationBySprintId(@Param("sprintId") Long sprintId);
+        @Query("SELECT COALESCE(SUM(t.estimation), 0) FROM Task t WHERE t.sprint.id = :sprintId AND t.type = 'STORY' AND t.tenantId = :tenantId")
+        Integer sumEstimationBySprintId(@Param("sprintId") Long sprintId, @Param("tenantId") String tenantId);
 
-        @Query("SELECT COALESCE(SUM(t.estimation), 0) FROM Task t WHERE t.sprint.id = :sprintId AND t.status = 'DONE' AND t.type = 'STORY'")
-        Integer sumCompletedStoryPointsBySprintId(@Param("sprintId") Long sprintId);
+        @Query("SELECT COALESCE(SUM(t.estimation), 0) FROM Task t WHERE t.sprint.id = :sprintId AND t.status = 'DONE' AND t.type = 'STORY' AND t.tenantId = :tenantId")
+        Integer sumCompletedStoryPointsBySprintId(@Param("sprintId") Long sprintId, @Param("tenantId") String tenantId);
 
         boolean existsByProject_IdAndAssignedUserId(Long projectId, Long userId);
 
         // Stats Queries
-        long countByProjectIdAndType(Long projectId, String type);
+        long countByProjectIdAndTypeAndTenantId(Long projectId, String type, String tenantId);
 
-        long countByProjectIdAndTypeAndMoscowPriority(Long projectId, String type, String moscowPriority);
+        long countByProjectIdAndTypeAndMoscowPriorityAndTenantId(Long projectId, String type, String moscowPriority,
+                        String tenantId);
 
-        @Query("SELECT CAST(COALESCE(SUM(t.estimation), 0) AS long) FROM Task t WHERE t.project.id = :projectId AND t.type = 'STORY'")
-        Long sumEstimationByProjectId(@Param("projectId") Long projectId);
+        @Query("SELECT CAST(COALESCE(SUM(t.estimation), 0) AS long) FROM Task t WHERE t.project.id = :projectId AND t.type = 'STORY' AND t.tenantId = :tenantId")
+        Long sumEstimationByProjectId(@Param("projectId") Long projectId, @Param("tenantId") String tenantId);
 
-        @Query("SELECT COALESCE(AVG(t.wsjfScore), 0.0) FROM Task t WHERE t.project.id = :projectId AND t.type = 'STORY'")
-        Double avgWsjfScoreByProjectId(@Param("projectId") Long projectId);
+        @Query("SELECT COALESCE(AVG(t.wsjfScore), 0.0) FROM Task t WHERE t.project.id = :projectId AND t.type = 'STORY' AND t.tenantId = :tenantId")
+        Double avgWsjfScoreByProjectId(@Param("projectId") Long projectId, @Param("tenantId") String tenantId);
 
-        @Query("SELECT COUNT(t) FROM Task t WHERE t.project.id = :projectId AND t.type = 'STORY' AND t.sprint IS NULL")
-        Long countUnplannedStoriesByProjectId(@Param("projectId") Long projectId);
+        @Query("SELECT COUNT(t) FROM Task t WHERE t.project.id = :projectId AND t.type = 'STORY' AND t.sprint IS NULL AND t.tenantId = :tenantId")
+        Long countUnplannedStoriesByProjectId(@Param("projectId") Long projectId, @Param("tenantId") String tenantId);
+
+        @Query("SELECT DISTINCT t FROM Task t " +
+                        "WHERE t.assignedUserId = :userId " +
+                        "AND t.tenantId = :tenantId " +
+                        "AND (:statusFilters IS NULL OR t.status IN :statusFilters) " +
+                        "AND (:sprintId IS NULL OR " +
+                        "     (:sprintId = -1L AND t.sprint IS NULL) OR " +
+                        "     t.sprint.id = :sprintId) " +
+                        "ORDER BY " +
+                        "    CASE WHEN :sortBy = 'priority' THEN " +
+                        "        CASE t.priority WHEN 'HIGH' THEN 1 WHEN 'MEDIUM' THEN 2 WHEN 'LOW' THEN 3 ELSE 4 END "
+                        +
+                        "    ELSE 0 END ASC, " +
+                        "    CASE WHEN :sortBy = 'estimation' THEN t.estimation ELSE 0 END DESC, " +
+                        "    CASE WHEN :sortBy = 'created_date' THEN t.createdAt ELSE CURRENT_TIMESTAMP END DESC")
+        java.util.List<Task> findTasksForDeveloper(
+                        @Param("userId") Long userId,
+                        @Param("statusFilters") java.util.List<String> statusFilters,
+                        @Param("sprintId") Long sprintId,
+                        @Param("sortBy") String sortBy,
+                        @Param("tenantId") String tenantId);
+
+        java.util.List<Task> findBySprintIdAndAssignedUserId(Long sprintId, Long assignedUserId);
 }

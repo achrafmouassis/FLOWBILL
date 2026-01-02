@@ -2,6 +2,7 @@ package com.flowbill.project.controller;
 
 import com.flowbill.project.dto.TaskRequest;
 import com.flowbill.project.dto.TaskResponse;
+import com.flowbill.project.dto.TaskDTO;
 import com.flowbill.project.service.TaskService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -81,6 +82,48 @@ public class TaskController {
         }
 
         return ResponseEntity.ok(taskService.getBacklogTasks(projectId));
+        return ResponseEntity.ok(taskService.getBacklogTasks(projectId));
+    }
+
+    @GetMapping("/my-tasks")
+    public ResponseEntity<List<TaskDTO>> getMyTasks(
+            @RequestParam(required = false) List<String> status,
+            @RequestParam(required = false) Long sprintId,
+            @RequestParam(defaultValue = "priority") String sortBy) {
+
+        var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        Long currentUserId = 0L;
+        if (auth.getDetails() instanceof Long) {
+            currentUserId = (Long) auth.getDetails();
+        } else {
+            // Fallback or error? For now empty list if user unknown
+            return ResponseEntity.ok(List.of());
+        }
+
+        return ResponseEntity.ok(taskService.getTasksForDeveloper(currentUserId, status, sprintId, sortBy));
+    }
+
+    @GetMapping("/{taskId}")
+    public ResponseEntity<TaskResponse> getTask(@PathVariable Long taskId) {
+        // We probably need a getTask method in service first if not exists,
+        // but typically updateTask logic uses findById.
+        // Let's implement a secure getTask here or in service.
+        // Ideally service: getTaskSecure(taskId, userId, isDev)
+        // But for quicker controller fix:
+
+        var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        boolean isDev = auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_USER"));
+        Long currentUserId = (auth.getDetails() instanceof Long) ? (Long) auth.getDetails() : 0L;
+
+        // Since service methods for getTask usually just return TaskResponse or Entity
+        // We might need to add getTask to service.
+        // Let's assume we add getTaskById to service in a moment if it's missing.
+        // Wait, TaskService doesn't have public getTaskById logic separate from update.
+        // I will add getTaskById to TaskService in next step or use repository if
+        // public (it's private in service).
+        // I'll call a new method taskService.getTaskById(taskId, currentUserId, isDev)
+
+        return ResponseEntity.ok(taskService.getTaskById(taskId, currentUserId, isDev));
     }
 
     @PutMapping("/{taskId}")

@@ -4,6 +4,8 @@ import com.flowbill.project.dto.SprintRequest;
 import com.flowbill.project.dto.SprintResponse;
 import com.flowbill.project.entity.Project;
 import com.flowbill.project.entity.Sprint;
+import com.flowbill.project.dto.MySprintDTO;
+import com.flowbill.project.dto.ProjectBriefDTO;
 import com.flowbill.project.repository.ProjectRepository;
 import com.flowbill.project.repository.SprintRepository;
 import com.flowbill.project.repository.TaskRepository;
@@ -53,12 +55,9 @@ public class SprintService {
             throw new RuntimeException("Sprint must be in PLANNED status to start");
         }
 
-        // Ensure no other sprint is ACTIVE for this project?
-        long activeCount = sprintRepository.findAll().stream()
-                .filter(s -> s.getProject().getId().equals(sprint.getProject().getId())
-                        && s.getStatus() == Sprint.SprintStatus.ACTIVE
-                        && s.getTenantId().equals(tenantId))
-                .count();
+        // Ensure no other sprint is ACTIVE for this project
+        long activeCount = sprintRepository.countByProjectIdAndStatusAndTenantId(sprint.getProject().getId(),
+                Sprint.SprintStatus.ACTIVE, tenantId);
 
         if (activeCount > 0) {
             throw new RuntimeException("Another sprint is already active for this project. Complete it first.");
@@ -91,7 +90,8 @@ public class SprintService {
         }
 
         // Find incomplete tasks
-        List<com.flowbill.project.entity.Task> incompleteTasks = taskRepository.findBySprintId(sprintId).stream()
+        List<com.flowbill.project.entity.Task> incompleteTasks = taskRepository
+                .findBySprintIdAndTenantId(sprintId, tenantId).stream()
                 .filter(t -> !"DONE".equals(t.getStatus()))
                 .collect(Collectors.toList());
 
@@ -133,17 +133,14 @@ public class SprintService {
 
     public List<Sprint> getActiveSprints() {
         String tenantId = com.flowbill.project.config.TenantContext.getCurrentTenant();
-        return sprintRepository.findAll().stream()
-                .filter(s -> s.getStatus() == Sprint.SprintStatus.ACTIVE && tenantId.equals(s.getTenantId()))
-                .collect(Collectors.toList());
+        return sprintRepository.findByStatusAndTenantId(Sprint.SprintStatus.ACTIVE, tenantId);
     }
 
     @Transactional(readOnly = true)
     public java.util.List<com.flowbill.project.dto.SprintDashboardResponse> getActiveSprintsWithStats() {
+        String tenantId = com.flowbill.project.config.TenantContext.getCurrentTenant();
         java.time.LocalDateTime now = java.time.LocalDateTime.now();
-        List<Sprint> activeSprints = sprintRepository.findAll().stream()
-                .filter(s -> s.getStartDate().isBefore(now) && s.getEndDate().isAfter(now))
-                .collect(Collectors.toList());
+        List<Sprint> activeSprints = sprintRepository.findByStatusAndTenantId(Sprint.SprintStatus.ACTIVE, tenantId);
 
         return activeSprints.stream().map(sprint -> {
             com.flowbill.project.dto.SprintDashboardResponse resp = new com.flowbill.project.dto.SprintDashboardResponse();
@@ -168,7 +165,8 @@ public class SprintService {
             resp.setDaysRemaining(daysRemaining < 0 ? 0 : daysRemaining);
 
             // Tasks stats
-            List<com.flowbill.project.entity.Task> sprintTasks = taskRepository.findBySprintId(sprint.getId());
+            List<com.flowbill.project.entity.Task> sprintTasks = taskRepository
+                    .findBySprintIdAndTenantId(sprint.getId(), tenantId);
             int totalTasks = sprintTasks.size();
             int completedTasks = (int) sprintTasks.stream().filter(t -> "DONE".equals(t.getStatus())).count();
 
@@ -201,8 +199,52 @@ public class SprintService {
 
     @Transactional(readOnly = true)
     public List<SprintResponse> getSprintsByProject(Long projectId) {
-        return sprintRepository.findByProjectId(projectId).stream()
+        String tenantId = com.flowbill.project.config.TenantContext.getCurrentTenant();
+        return sprintRepository.findByProjectIdAndTenantId(projectId, tenantId).stream()
                 .map(SprintResponse::fromEntity)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<MySprintDTO> getSprintsForDeveloper(Long userId) {
+        String tenantId = com.flowbill.project.config.TenantContext.getCurrentTenant();
+        List<Sprint> sprints = sprintRepository.findSprintsForDeveloper(userId, tenantId);
+
+        return sprints.stream().map(sprint -> {
+            MySprintDTO dto = new MySprintDTO();
+            dto.setId(sprint.getId());
+            dto.setName(sprint.getName());
+            dto.setStatus(sprint.getStatus().name());
+            dto.setStartDate(sprint.getStartDate() != null ? sprint.getStartDate().toLocalDate() : null);
+            dto.setEndDate(sprint.getEndDate() != null ? sprint.getEndDate().toLocalDate() : null);
+            dto.setGoal(sprint.getGoal());
+
+            if (sprint.getProject() != null) {
+                dto.setProject(new ProjectBriefDTO(
+                        sprint.getProject().getId(),
+                        sprint.getProject().getName(),
+                        "Unknown Client"));
+            }
+
+            // Calculate personal metrics
+            List<com.flowbill.project.entity.Task> myTasks = taskRepository
+                    .findBySprintIdAndAssignedUserId(sprint.getId(), userId);
+
+            int total = myTasks.size();
+            int completed = (int) myTasks.stream().filter(t -> "DONE".equals(t.getStatus())).count();
+            int remainingHours = myTasks.stream()
+                    .filter(t -> !"DONE".equals(t.getStatus()))
+                    .mapToInt(t -> t.getEstimation() != null ? t.getEstimation() : 0) // Approximation: 1 SP = 1 Hour
+                                                                                      // for simplicity or just sum SP
+                    .sum();
+
+            dto.setMyTotalTasks(total);
+            dto.setMyCompletedTasks(completed);
+            dto.setMyCompletionRate(total > 0 ? (completed * 100 / total) : 0);
+            dto.setMyRemainingHours(remainingHours); // Actually returning remaining SP here based on prompt logic
+                                                     // usually
+
+            return dto;
+        }).collect(Collectors.toList());
     }
 }
