@@ -121,4 +121,10 @@ public class AuthService {
             throw new RuntimeException("Error converting competencies to JSON", e);
         }
     }
+
+    public String getUserFullName(Long userId) {
+        return userRepository.findById(userId)
+                .map(User::getFullName)
+                .orElse("User " + userId);
+    }
 }

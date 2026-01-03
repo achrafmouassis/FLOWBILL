@@ -82,7 +82,7 @@ public class TaskController {
         }
 
         return ResponseEntity.ok(taskService.getBacklogTasks(projectId));
-        return ResponseEntity.ok(taskService.getBacklogTasks(projectId));
+
     }
 
     @GetMapping("/my-tasks")

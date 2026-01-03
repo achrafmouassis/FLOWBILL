@@ -15,6 +15,11 @@ public class TenantFilter implements Filter {
         String tenantId = req.getHeader(TenantConstants.TENANT_ID_HEADER);
         if (tenantId != null)
             TenantContext.setCurrentTenant(tenantId);
+
+        String roles = req.getHeader(TenantConstants.USER_ROLES_HEADER);
+        if (roles != null)
+            TenantContext.setCurrentRoles(roles);
+
         try {
             chain.doFilter(request, response);
         } finally {

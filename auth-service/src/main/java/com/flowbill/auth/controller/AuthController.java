@@ -82,4 +82,9 @@ public class AuthController {
         private String oldPassword;
         private String newPassword;
     }
+
+    @GetMapping("/users/{userId}/name")
+    public String getUserFullName(@PathVariable Long userId) {
+        return authService.getUserFullName(userId);
+    }
 }

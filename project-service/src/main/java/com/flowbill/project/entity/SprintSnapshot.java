@@ -14,7 +14,6 @@ import org.hibernate.annotations.ParamDef;
         @UniqueConstraint(columnNames = { "sprint_id", "snapshot_date" })
 })
 @Data
-@FilterDef(name = "tenantFilter", parameters = @ParamDef(name = "tenantId", type = String.class))
 @Filter(name = "tenantFilter", condition = "tenant_id = :tenantId")
 public class SprintSnapshot {
     @Id

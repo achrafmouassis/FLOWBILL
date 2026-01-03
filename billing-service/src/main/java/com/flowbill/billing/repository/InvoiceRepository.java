@@ -12,6 +12,6 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
 
     boolean existsByQuoteId(Long quoteId);
 
-    @Query("SELECT MAX(CAST(SUBSTRING(i.invoiceNumber FROM '.*-([0-9]+)$') AS long)) FROM Invoice i WHERE i.tenantId = :tenantId AND i.invoiceNumber LIKE :yearPattern")
+    @Query(value = "SELECT MAX(CAST(SUBSTRING(invoice_number FROM '.*-([0-9]+)$') AS bigint)) FROM invoices WHERE tenant_id = :tenantId AND invoice_number LIKE :yearPattern", nativeQuery = true)
     Long findMaxSequenceForTenant(@Param("tenantId") String tenantId, @Param("yearPattern") String yearPattern);
 }

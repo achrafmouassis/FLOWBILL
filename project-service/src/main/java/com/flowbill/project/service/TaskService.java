@@ -1,7 +1,5 @@
 package com.flowbill.project.service;
 
-import com.flowbill.project.dto.BacklogStatisticsDTO;
-import com.flowbill.project.dto.StoryCreationRequest;
 import com.flowbill.project.dto.TaskRequest;
 import com.flowbill.project.dto.TaskResponse;
 import com.flowbill.project.entity.Project;
@@ -211,7 +209,7 @@ public class TaskService {
         if (task.getSprint() != null) {
             long daysRemaining = 0;
             if (task.getSprint().getEndDate() != null) {
-                daysRemaining = java.time.time.ChronoUnit.DAYS.between(java.time.LocalDate.now(),
+                daysRemaining = java.time.temporal.ChronoUnit.DAYS.between(java.time.LocalDate.now(),
                         task.getSprint().getEndDate().toLocalDate());
             }
             dto.setSprint(new SprintBriefDTO(
@@ -311,7 +309,7 @@ public class TaskService {
         Task story = taskRepository.findByIdAndTenantId(storyId, tenantId)
                 .orElseThrow(() -> new RuntimeException("Story not found"));
 
-        if (!"STORY".equals(story.getType())) {
+        if (story.getType() != TaskType.STORY) {
             throw new RuntimeException("Target task is not a Story");
         }
 
@@ -390,15 +388,20 @@ public class TaskService {
     @Transactional(readOnly = true)
     public com.flowbill.project.dto.BacklogStatisticsDTO calculateBacklogStatistics(Long projectId) {
         String tenantId = com.flowbill.project.config.TenantContext.getCurrentTenant();
-        long totalStories = taskRepository.countByProjectIdAndTypeAndTenantId(projectId, "STORY", tenantId);
-        long mustHave = taskRepository.countByProjectIdAndTypeAndMoscowPriorityAndTenantId(projectId, "STORY",
-                "MUST_HAVE", tenantId);
-        long shouldHave = taskRepository.countByProjectIdAndTypeAndMoscowPriorityAndTenantId(projectId, "STORY",
-                "SHOULD_HAVE", tenantId);
-        long couldHave = taskRepository.countByProjectIdAndTypeAndMoscowPriorityAndTenantId(projectId, "STORY",
-                "COULD_HAVE", tenantId);
-        long wontHave = taskRepository.countByProjectIdAndTypeAndMoscowPriorityAndTenantId(projectId, "STORY",
-                "WONT_HAVE", tenantId);
+        long totalStories = taskRepository.countByProjectIdAndTypeAndTenantId(projectId,
+                com.flowbill.project.enums.TaskType.STORY, tenantId);
+        long mustHave = taskRepository.countByProjectIdAndTypeAndMoscowPriorityAndTenantId(projectId,
+                com.flowbill.project.enums.TaskType.STORY,
+                com.flowbill.project.enums.MoscowPriority.MUST_HAVE, tenantId);
+        long shouldHave = taskRepository.countByProjectIdAndTypeAndMoscowPriorityAndTenantId(projectId,
+                com.flowbill.project.enums.TaskType.STORY,
+                com.flowbill.project.enums.MoscowPriority.SHOULD_HAVE, tenantId);
+        long couldHave = taskRepository.countByProjectIdAndTypeAndMoscowPriorityAndTenantId(projectId,
+                com.flowbill.project.enums.TaskType.STORY,
+                com.flowbill.project.enums.MoscowPriority.COULD_HAVE, tenantId);
+        long wontHave = taskRepository.countByProjectIdAndTypeAndMoscowPriorityAndTenantId(projectId,
+                com.flowbill.project.enums.TaskType.STORY,
+                com.flowbill.project.enums.MoscowPriority.WONT_HAVE, tenantId);
         Long totalSP = taskRepository.sumEstimationByProjectId(projectId, tenantId);
         Double avgWsjf = taskRepository.avgWsjfScoreByProjectId(projectId, tenantId);
         Long unplanned = taskRepository.countUnplannedStoriesByProjectId(projectId, tenantId);

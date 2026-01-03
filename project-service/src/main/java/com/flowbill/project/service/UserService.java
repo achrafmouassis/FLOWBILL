@@ -36,8 +36,7 @@ public class UserService {
         }
 
         try {
-            // Call auth-service to get user details
-            String url = authServiceUrl + "/api/users/" + userId + "/name";
+            String url = authServiceUrl + "/auth/users/" + userId + "/name";
             String fullName = restTemplate.getForObject(url, String.class);
 
             if (fullName != null && !fullName.isEmpty()) {

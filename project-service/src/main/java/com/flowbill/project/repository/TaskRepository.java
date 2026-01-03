@@ -18,7 +18,8 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
 
         long countByProjectIdAndTenantId(Long projectId, String tenantId);
 
-        long countByProjectIdAndStatusAndTenantId(Long projectId, String status, String tenantId);
+        long countByProjectIdAndStatusAndTenantId(Long projectId, com.flowbill.project.enums.TaskStatus status,
+                        String tenantId);
 
         // Agile / Backlog Queries
 
@@ -125,10 +126,12 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
         boolean existsByProject_IdAndAssignedUserId(Long projectId, Long userId);
 
         // Stats Queries
-        long countByProjectIdAndTypeAndTenantId(Long projectId, String type, String tenantId);
-
-        long countByProjectIdAndTypeAndMoscowPriorityAndTenantId(Long projectId, String type, String moscowPriority,
+        long countByProjectIdAndTypeAndTenantId(Long projectId, com.flowbill.project.enums.TaskType type,
                         String tenantId);
+
+        long countByProjectIdAndTypeAndMoscowPriorityAndTenantId(Long projectId,
+                        com.flowbill.project.enums.TaskType type,
+                        com.flowbill.project.enums.MoscowPriority moscowPriority, String tenantId);
 
         @Query("SELECT CAST(COALESCE(SUM(t.estimation), 0) AS long) FROM Task t WHERE t.project.id = :projectId AND t.type = 'STORY' AND t.tenantId = :tenantId")
         Long sumEstimationByProjectId(@Param("projectId") Long projectId, @Param("tenantId") String tenantId);

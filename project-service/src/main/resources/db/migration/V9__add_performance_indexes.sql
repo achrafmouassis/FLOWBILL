@@ -25,7 +25,7 @@ CREATE INDEX IF NOT EXISTS idx_projects_tenant_status
 
 -- Optimize snapshot queries for burndown charts
 CREATE INDEX IF NOT EXISTS idx_snapshots_sprint_date 
-    ON sprint_snapshots(sprint_id, snapshot_date);
+    ON sprint_daily_snapshots(sprint_id, snapshot_date);
 
 -- Add index on task dependencies for blocker queries
 CREATE INDEX IF NOT EXISTS idx_task_dependencies_blocked 

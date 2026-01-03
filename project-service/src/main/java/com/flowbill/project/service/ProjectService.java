@@ -134,7 +134,8 @@ public class ProjectService {
 
         String tenantId = project.getTenantId();
         long totalTasks = taskRepository.countByProjectIdAndTenantId(project.getId(), tenantId);
-        long completedTasks = taskRepository.countByProjectIdAndStatusAndTenantId(project.getId(), "DONE", tenantId);
+        long completedTasks = taskRepository.countByProjectIdAndStatusAndTenantId(project.getId(),
+                com.flowbill.project.enums.TaskStatus.DONE, tenantId);
 
         dto.setTaskCount((int) totalTasks);
         dto.setCompletedTaskCount((int) completedTasks);

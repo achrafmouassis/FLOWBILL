@@ -6,9 +6,9 @@ spring:
     name: billing-service
   
   datasource:
-    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/flowbill}
-    username: ${DATABASE_USERNAME:flowbill_user}
-    password: ${DATABASE_PASSWORD:flowbill_pass}
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:flowbill}
+    username: ${POSTGRES_USER:flowbill_user}
+    password: ${POSTGRES_PASSWORD:flowbill_pass}
     driver-class-name: org.postgresql.Driver
   
   jpa:

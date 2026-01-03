@@ -31,11 +31,15 @@ public class ReportService {
                                 Sprint.SprintStatus.ACTIVE, tenantId);
 
                 List<Task> allTasks = taskRepository.findByProjectIdAndTenantId(projectId, tenantId);
-                long todo = allTasks.stream().filter(t -> "TODO".equals(t.getStatus())).count();
-                long inProgress = allTasks.stream().filter(t -> "IN_PROGRESS".equals(t.getStatus())).count();
+                long todo = allTasks.stream().filter(t -> t.getStatus() == com.flowbill.project.enums.TaskStatus.TODO)
+                                .count();
+                long inProgress = allTasks.stream()
+                                .filter(t -> t.getStatus() == com.flowbill.project.enums.TaskStatus.IN_PROGRESS)
+                                .count();
                 long totalActive = todo + inProgress;
 
-                long backlogStories = taskRepository.countByProjectIdAndStatusAndTenantId(projectId, "TODO", tenantId);
+                long backlogStories = taskRepository.countByProjectIdAndStatusAndTenantId(projectId,
+                                com.flowbill.project.enums.TaskStatus.TODO, tenantId);
 
                 return GlobalMetricsDTO.builder()
                                 .activeProjects(activeProjects)
@@ -116,7 +120,7 @@ public class ReportService {
 
                 // 2. Alert: Blocked tasks
                 long blockedCount = taskRepository.findByProjectIdAndTenantId(projectId, tenantId).stream()
-                                .filter(t -> "BLOCKED".equals(t.getStatus()))
+                                .filter(t -> t.getStatus() == com.flowbill.project.enums.TaskStatus.BLOCKED)
                                 .count();
                 if (blockedCount > 0) {
                         alerts.add(ReportAlertDTO.builder()

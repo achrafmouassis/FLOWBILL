@@ -92,7 +92,7 @@ public class SprintService {
         // Find incomplete tasks
         List<com.flowbill.project.entity.Task> incompleteTasks = taskRepository
                 .findBySprintIdAndTenantId(sprintId, tenantId).stream()
-                .filter(t -> !"DONE".equals(t.getStatus()))
+                .filter(t -> t.getStatus() != com.flowbill.project.enums.TaskStatus.DONE)
                 .collect(Collectors.toList());
 
         if (request.isMoveToBacklog() || request.getMoveIncompleteToSprintId() == null) {
@@ -168,7 +168,8 @@ public class SprintService {
             List<com.flowbill.project.entity.Task> sprintTasks = taskRepository
                     .findBySprintIdAndTenantId(sprint.getId(), tenantId);
             int totalTasks = sprintTasks.size();
-            int completedTasks = (int) sprintTasks.stream().filter(t -> "DONE".equals(t.getStatus())).count();
+            int completedTasks = (int) sprintTasks.stream()
+                    .filter(t -> t.getStatus() == com.flowbill.project.enums.TaskStatus.DONE).count();
 
             resp.setTotalTasks(totalTasks);
             resp.setCompletedTasks(completedTasks);
@@ -178,7 +179,7 @@ public class SprintService {
             // Assuming we have estimation field (Integer)
             int totalSP = sprintTasks.stream().mapToInt(t -> t.getEstimation() != null ? t.getEstimation() : 0).sum();
             int completedSP = sprintTasks.stream()
-                    .filter(t -> "DONE".equals(t.getStatus()))
+                    .filter(t -> t.getStatus() == com.flowbill.project.enums.TaskStatus.DONE)
                     .mapToInt(t -> t.getEstimation() != null ? t.getEstimation() : 0).sum();
 
             resp.setTotalStoryPoints(totalSP);
@@ -231,9 +232,10 @@ public class SprintService {
                     .findBySprintIdAndAssignedUserId(sprint.getId(), userId);
 
             int total = myTasks.size();
-            int completed = (int) myTasks.stream().filter(t -> "DONE".equals(t.getStatus())).count();
+            int completed = (int) myTasks.stream()
+                    .filter(t -> t.getStatus() == com.flowbill.project.enums.TaskStatus.DONE).count();
             int remainingHours = myTasks.stream()
-                    .filter(t -> !"DONE".equals(t.getStatus()))
+                    .filter(t -> t.getStatus() != com.flowbill.project.enums.TaskStatus.DONE)
                     .mapToInt(t -> t.getEstimation() != null ? t.getEstimation() : 0) // Approximation: 1 SP = 1 Hour
                                                                                       // for simplicity or just sum SP
                     .sum();

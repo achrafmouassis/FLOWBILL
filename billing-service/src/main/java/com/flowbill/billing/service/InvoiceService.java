@@ -18,7 +18,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.stream.Collectors;
-import java.util.concurrent.CompletableFuture;
 
 @Service
 @Transactional
@@ -36,14 +35,14 @@ public class InvoiceService {
     @Autowired
     private BillingEventService eventService;
 
-    @Autowired
-    private TenantContext tenantContext;
-
     public InvoiceDTO createInvoiceFromQuote(Long quoteId, Long userId) {
         Quote quote = quoteRepository.findById(quoteId)
                 .orElseThrow(() -> new NotFoundException("Devis non trouvé"));
 
-        if (!quote.getTenantId().equals(tenantContext.getCurrentTenant())) {
+        String roles = TenantContext.getCurrentRoles();
+        boolean isSuperAdmin = roles != null && roles.contains("ROLE_SUPER_ADMIN");
+
+        if (!isSuperAdmin && !quote.getTenantId().equals(TenantContext.getCurrentTenant())) {
             throw new ForbiddenException("Accès refusé");
         }
 
@@ -116,7 +115,10 @@ public class InvoiceService {
         Invoice invoice = invoiceRepository.findById(invoiceId)
                 .orElseThrow(() -> new NotFoundException("Facture non trouvée"));
 
-        if (!invoice.getTenantId().equals(tenantContext.getCurrentTenant())) {
+        String roles = TenantContext.getCurrentRoles();
+        boolean isSuperAdmin = roles != null && roles.contains("ROLE_SUPER_ADMIN");
+
+        if (!isSuperAdmin && !invoice.getTenantId().equals(TenantContext.getCurrentTenant())) {
             throw new ForbiddenException("Accès refusé");
         }
 
@@ -151,7 +153,10 @@ public class InvoiceService {
         Invoice invoice = invoiceRepository.findById(invoiceId)
                 .orElseThrow(() -> new NotFoundException("Facture non trouvée"));
 
-        if (!invoice.getTenantId().equals(tenantContext.getCurrentTenant())) {
+        String roles = TenantContext.getCurrentRoles();
+        boolean isSuperAdmin = roles != null && roles.contains("ROLE_SUPER_ADMIN");
+
+        if (!isSuperAdmin && !invoice.getTenantId().equals(TenantContext.getCurrentTenant())) {
             throw new ForbiddenException("Accès refusé");
         }
 
@@ -181,15 +186,21 @@ public class InvoiceService {
 
     public InvoiceDTO findById(Long id) {
         Invoice invoice = invoiceRepository.findById(id).orElseThrow(() -> new NotFoundException("Not Found"));
-        if (!invoice.getTenantId().equals(tenantContext.getCurrentTenant()))
+        String roles = TenantContext.getCurrentRoles();
+        boolean isSuperAdmin = roles != null && roles.contains("ROLE_SUPER_ADMIN");
+
+        if (!isSuperAdmin && !invoice.getTenantId().equals(TenantContext.getCurrentTenant()))
             throw new ForbiddenException("Access Denied");
         return toDTO(invoice);
     }
 
     public List<InvoiceDTO> findInvoices(Long projectId, InvoiceStatus status) {
         List<Invoice> invoices = invoiceRepository.findByProjectId(projectId);
+        String roles = TenantContext.getCurrentRoles();
+        boolean isSuperAdmin = roles != null && roles.contains("ROLE_SUPER_ADMIN");
+
         return invoices.stream()
-                .filter(i -> i.getTenantId().equals(tenantContext.getCurrentTenant()))
+                .filter(i -> isSuperAdmin || i.getTenantId().equals(TenantContext.getCurrentTenant()))
                 .filter(i -> status == null || i.getStatus() == status)
                 .map(this::toDTO)
                 .collect(Collectors.toList());
@@ -197,7 +208,10 @@ public class InvoiceService {
 
     public byte[] getInvoicePdf(Long id) {
         Invoice invoice = invoiceRepository.findById(id).orElseThrow(() -> new NotFoundException("Not Found"));
-        if (!invoice.getTenantId().equals(tenantContext.getCurrentTenant()))
+        String roles = TenantContext.getCurrentRoles();
+        boolean isSuperAdmin = roles != null && roles.contains("ROLE_SUPER_ADMIN");
+
+        if (!isSuperAdmin && !invoice.getTenantId().equals(TenantContext.getCurrentTenant()))
             throw new ForbiddenException("Access Denied");
 
         // In clean arch, this service should return the file path or resource
@@ -207,7 +221,7 @@ public class InvoiceService {
         // But for MVP, assume local storage access.
         try {
             // Reconstruct path
-            String filename = invoice.getInvoiceNumber().replace("/", "-") + ".pdf";
+            // String filename = invoice.getInvoiceNumber().replace("/", "-") + ".pdf";
             // We need the base path. Inject it here too?
             // Or better expose a method in PdfService
             // Let's assume PdfGeneratorService handles only creation for now.

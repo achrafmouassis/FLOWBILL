@@ -119,7 +119,7 @@ public class BacklogController {
                 Task savedStory = taskRepository.save(story);
 
                 if (request.getAcceptanceCriteria() != null) {
-                        int order = 1;
+
                         for (String desc : request.getAcceptanceCriteria()) {
                                 AcceptanceCriteria criteria = new AcceptanceCriteria();
                                 criteria.setTask(savedStory);
@@ -155,7 +155,7 @@ public class BacklogController {
                 Task story = taskRepository.findByIdAndTenantId(storyId, tenantId)
                                 .orElseThrow(() -> new NotFoundException("Story non trouvée"));
 
-                if (!"STORY".equals(story.getType())) {
+                if (story.getType() != TaskType.STORY) {
                         throw new BadRequestException("L'entité doit être une Story");
                 }
 

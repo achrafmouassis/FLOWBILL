@@ -23,6 +23,11 @@ public class TenantFilter implements Filter {
             TenantContext.setCurrentTenant(tenantId);
         }
 
+        String roles = req.getHeader(TenantConstants.USER_ROLES_HEADER);
+        if (roles != null) {
+            TenantContext.setCurrentRoles(roles);
+        }
+
         if (userIdStr != null) {
             try {
                 TenantContext.setCurrentUserId(Long.parseLong(userIdStr));

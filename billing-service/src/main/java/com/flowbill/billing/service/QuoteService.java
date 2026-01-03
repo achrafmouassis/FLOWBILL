@@ -33,11 +33,10 @@ public class QuoteService {
     @Autowired
     private BillingEventService eventService;
 
-    @Autowired
-    private TenantContext tenantContext;
-
     public QuoteDTO createQuote(CreateQuoteRequest request, Long userId) {
-        String tenantId = tenantContext.getCurrentTenant();
+        String roles = TenantContext.getCurrentRoles();
+        boolean isSuperAdmin = roles != null && roles.contains("ROLE_SUPER_ADMIN");
+        String tenantId = isSuperAdmin ? "SUPERADMIN" : TenantContext.getCurrentTenant();
 
         validateQuoteRequest(request);
 
@@ -90,7 +89,10 @@ public class QuoteService {
         Quote quote = quoteRepository.findById(quoteId)
                 .orElseThrow(() -> new NotFoundException("Devis non trouvé"));
 
-        if (!quote.getTenantId().equals(tenantContext.getCurrentTenant())) {
+        String roles = TenantContext.getCurrentRoles();
+        boolean isSuperAdmin = roles != null && roles.contains("ROLE_SUPER_ADMIN");
+
+        if (!isSuperAdmin && !quote.getTenantId().equals(TenantContext.getCurrentTenant())) {
             throw new ForbiddenException("Accès refusé");
         }
 
@@ -134,7 +136,10 @@ public class QuoteService {
         Quote quote = quoteRepository.findById(quoteId)
                 .orElseThrow(() -> new NotFoundException("Devis non trouvé"));
 
-        if (!quote.getTenantId().equals(tenantContext.getCurrentTenant())) {
+        String roles = TenantContext.getCurrentRoles();
+        boolean isSuperAdmin = roles != null && roles.contains("ROLE_SUPER_ADMIN");
+
+        if (!isSuperAdmin && !quote.getTenantId().equals(TenantContext.getCurrentTenant())) {
             throw new ForbiddenException("Accès refusé");
         }
 
@@ -165,7 +170,10 @@ public class QuoteService {
         Quote quote = quoteRepository.findById(quoteId)
                 .orElseThrow(() -> new NotFoundException("Devis non trouvé"));
 
-        if (!quote.getTenantId().equals(tenantContext.getCurrentTenant())) {
+        String roles = TenantContext.getCurrentRoles();
+        boolean isSuperAdmin = roles != null && roles.contains("ROLE_SUPER_ADMIN");
+
+        if (!isSuperAdmin && !quote.getTenantId().equals(TenantContext.getCurrentTenant())) {
             throw new ForbiddenException("Accès refusé");
         }
 
@@ -185,7 +193,10 @@ public class QuoteService {
 
     public QuoteDTO findById(Long id) {
         Quote quote = quoteRepository.findById(id).orElseThrow(() -> new NotFoundException("Not Found"));
-        if (!quote.getTenantId().equals(tenantContext.getCurrentTenant()))
+        String roles = TenantContext.getCurrentRoles();
+        boolean isSuperAdmin = roles != null && roles.contains("ROLE_SUPER_ADMIN");
+
+        if (!isSuperAdmin && !quote.getTenantId().equals(TenantContext.getCurrentTenant()))
             throw new ForbiddenException("Access Denied");
         return toDTO(quote);
     }
@@ -194,8 +205,11 @@ public class QuoteService {
         // Simplified filter
         // In real world, use Specification
         List<Quote> quotes = quoteRepository.findByProjectId(projectId);
+        String roles = TenantContext.getCurrentRoles();
+        boolean isSuperAdmin = roles != null && roles.contains("ROLE_SUPER_ADMIN");
+
         return quotes.stream()
-                .filter(q -> q.getTenantId().equals(tenantContext.getCurrentTenant()))
+                .filter(q -> isSuperAdmin || q.getTenantId().equals(TenantContext.getCurrentTenant()))
                 .filter(q -> status == null || q.getStatus() == status)
                 .map(this::toDTO)
                 .collect(Collectors.toList());

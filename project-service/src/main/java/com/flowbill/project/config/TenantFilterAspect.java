@@ -22,6 +22,12 @@ public class TenantFilterAspect {
 
     @Before("repositoryMethods()")
     public void enableTenantFilter() {
+        String roles = TenantContext.getCurrentRoles();
+        if (roles != null && roles.contains("ROLE_SUPER_ADMIN")) {
+            // Bypass filter for SuperAdmin
+            return;
+        }
+
         String tenantId = TenantContext.getCurrentTenant();
         if (tenantId != null) {
             Session session = entityManager.unwrap(Session.class);

@@ -10,7 +10,8 @@ import BacklogView from '../components/backlog/BacklogView';
 import SprintPlanningBoard from '../components/backlog/SprintPlanningBoard';
 import ActiveSprintBoard from '../components/project/ActiveSprintBoard';
 import ReportingTab from '../components/dashboard/ReportingTab';
-import { ChevronLeft, Layout, ListTodo, Layers, Users, BarChart3, Settings } from 'lucide-react';
+import BillingView from '../components/billing/BillingView';
+import { ChevronLeft, Layout, ListTodo, Layers, Users, BarChart3, Settings, Receipt } from 'lucide-react';
 
 const ProjectDetailPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -54,6 +55,7 @@ const ProjectDetailPage: React.FC = () => {
         { name: 'Kanban', icon: Layout },
         { name: 'Équipe', icon: Users },
         { name: 'Rapports', icon: BarChart3 },
+        { name: 'Facturation', icon: Receipt },
         { name: 'Paramètres', icon: Settings },
     ];
 
@@ -120,7 +122,9 @@ const ProjectDetailPage: React.FC = () => {
 
                 {activeTab === 'Rapports' && <ReportingTab projectId={project.id} />}
 
-                {activeTab !== 'APERÇU' && activeTab !== 'Backlog' && activeTab !== 'Sprints' && activeTab !== 'Kanban' && activeTab !== 'Board' && activeTab !== 'Rapports' && (
+                {activeTab === 'Facturation' && <BillingView projectId={project.id} />}
+
+                {activeTab !== 'APERÇU' && activeTab !== 'Backlog' && activeTab !== 'Sprints' && activeTab !== 'Kanban' && activeTab !== 'Board' && activeTab !== 'Rapports' && activeTab !== 'Facturation' && (
                     <div className="bg-white rounded-[2.5rem] p-20 text-center border border-slate-200 border-dashed">
                         <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4 text-slate-300">
                             <Layout size={32} />
