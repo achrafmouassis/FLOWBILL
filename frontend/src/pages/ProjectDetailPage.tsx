@@ -62,7 +62,7 @@ const ProjectDetailPage: React.FC = () => {
         { name: 'Équipe', icon: Users, roles: ['ROLE_USER', 'ROLE_ADMIN_ENTREPRISE'] },
         { name: 'Rapports', icon: BarChart3, roles: ['ROLE_ADMIN_ENTREPRISE'] },
         { name: 'Facturation', icon: Receipt, roles: ['ROLE_ADMIN_ENTREPRISE'] },
-        { name: 'Paramètres', icon: Settings, roles: ['ROLE_ADMIN_ENTREPRISE'] },
+
     ];
 
     const tabs = allTabs.filter(tab => tab.roles.some(role => roles.includes(role)));

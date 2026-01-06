@@ -57,7 +57,7 @@ const TeamManagement = () => {
     const [users, setUsers] = useState<User[]>([]);
     const [newUserEmail, setNewUserEmail] = useState('');
     const [newUserFullName, setNewUserFullName] = useState('');
-    const [newUserTelephone, setNewUserTelephone] = useState('');
+    const [newUserTelephone, setNewUserTelephone] = useState('+212 ');
     const [selectedCompetencies, setSelectedCompetencies] = useState<number[]>([]);
     const [loading, setLoading] = useState(true);
     const [generatedPassword, setGeneratedPassword] = useState('');
@@ -252,7 +252,7 @@ const TeamManagement = () => {
             setGeneratedPassword(password);
             setNewUserEmail('');
             setNewUserFullName('');
-            setNewUserTelephone('');
+            setNewUserTelephone('+212 ');
             setSelectedCompetencies([]);
             fetchUsers();
         } catch (error) {
@@ -388,7 +388,7 @@ const TeamManagement = () => {
                                 className="mt-1 border p-2 rounded w-full"
                                 value={newUserTelephone}
                                 onChange={(e) => setNewUserTelephone(e.target.value)}
-                                placeholder="+33 1 23 45 67 89"
+                                placeholder="+212 6 12 34 56 78"
                             />
                         </div>
                         <div>
