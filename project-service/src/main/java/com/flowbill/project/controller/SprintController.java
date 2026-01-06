@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/sprints")
+@RequestMapping
 @RequiredArgsConstructor
 public class SprintController {
 
@@ -21,7 +21,7 @@ public class SprintController {
     private final TaskService taskService;
     private final com.flowbill.project.service.BurndownService burndownService;
 
-    @GetMapping("/active-dashboard")
+    @GetMapping("/sprints/active-dashboard")
     @org.springframework.security.access.prepost.PreAuthorize("hasAuthority('ROLE_ADMIN_ENTREPRISE')")
     public ResponseEntity<List<com.flowbill.project.dto.SprintDashboardResponse>> getActiveSprints() {
         return ResponseEntity.ok(sprintService.getActiveSprintsWithStats());

@@ -11,6 +11,8 @@ import SprintPlanningBoard from '../components/backlog/SprintPlanningBoard';
 import ActiveSprintBoard from '../components/project/ActiveSprintBoard';
 import ReportingTab from '../components/dashboard/ReportingTab';
 import BillingView from '../components/billing/BillingView';
+import ProjectTeam from '../components/project/ProjectTeam';
+import { jwtDecode } from 'jwt-decode';
 import { ChevronLeft, Layout, ListTodo, Layers, Users, BarChart3, Settings, Receipt } from 'lucide-react';
 
 const ProjectDetailPage: React.FC = () => {
@@ -19,6 +21,10 @@ const ProjectDetailPage: React.FC = () => {
     const [project, setProject] = useState<ProjectDetailed | null>(null);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('APERÇU');
+
+    const token = localStorage.getItem('token');
+    const decoded: any = token ? jwtDecode(token) : {};
+    const roles = decoded.roles || [];
 
     useEffect(() => {
         const fetchProject = async () => {
@@ -48,16 +54,26 @@ const ProjectDetailPage: React.FC = () => {
         </div>
     );
 
-    const tabs = [
-        { name: 'APERÇU', icon: Layout },
-        { name: 'Backlog', icon: ListTodo },
-        { name: 'Sprints', icon: Layers },
-        { name: 'Kanban', icon: Layout },
-        { name: 'Équipe', icon: Users },
-        { name: 'Rapports', icon: BarChart3 },
-        { name: 'Facturation', icon: Receipt },
-        { name: 'Paramètres', icon: Settings },
+    const allTabs = [
+        { name: 'APERÇU', icon: Layout, roles: ['ROLE_USER', 'ROLE_ADMIN_ENTREPRISE'] },
+        { name: 'Backlog', icon: ListTodo, roles: ['ROLE_USER', 'ROLE_ADMIN_ENTREPRISE'] },
+        { name: 'Sprints', icon: Layers, roles: ['ROLE_USER', 'ROLE_ADMIN_ENTREPRISE'] },
+        { name: 'Kanban', icon: Layout, roles: ['ROLE_USER', 'ROLE_ADMIN_ENTREPRISE'] },
+        { name: 'Équipe', icon: Users, roles: ['ROLE_USER', 'ROLE_ADMIN_ENTREPRISE'] },
+        { name: 'Rapports', icon: BarChart3, roles: ['ROLE_ADMIN_ENTREPRISE'] },
+        { name: 'Facturation', icon: Receipt, roles: ['ROLE_ADMIN_ENTREPRISE'] },
+        { name: 'Paramètres', icon: Settings, roles: ['ROLE_ADMIN_ENTREPRISE'] },
     ];
+
+    const tabs = allTabs.filter(tab => tab.roles.some(role => roles.includes(role)));
+
+    const handleBack = () => {
+        if (roles.includes('ROLE_ADMIN_ENTREPRISE')) {
+            navigate('/tenant-admin');
+        } else {
+            navigate('/user');
+        }
+    };
 
     return (
         <div className="min-h-screen bg-slate-50 flex flex-col">
@@ -66,7 +82,7 @@ const ProjectDetailPage: React.FC = () => {
                 <div className="max-w-7xl mx-auto px-6 py-4">
                     <div className="flex items-center gap-4 mb-4">
                         <button
-                            onClick={() => navigate('/tenant-admin')}
+                            onClick={handleBack}
                             className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 transition-colors"
                         >
                             <ChevronLeft size={20} />
@@ -124,7 +140,9 @@ const ProjectDetailPage: React.FC = () => {
 
                 {activeTab === 'Facturation' && <BillingView projectId={project.id} />}
 
-                {activeTab !== 'APERÇU' && activeTab !== 'Backlog' && activeTab !== 'Sprints' && activeTab !== 'Kanban' && activeTab !== 'Board' && activeTab !== 'Rapports' && activeTab !== 'Facturation' && (
+                {activeTab === 'Équipe' && <ProjectTeam members={project.teamMembers || []} projectId={project.id} />}
+
+                {activeTab !== 'APERÇU' && activeTab !== 'Backlog' && activeTab !== 'Sprints' && activeTab !== 'Kanban' && activeTab !== 'Board' && activeTab !== 'Rapports' && activeTab !== 'Facturation' && activeTab !== 'Équipe' && (
                     <div className="bg-white rounded-[2.5rem] p-20 text-center border border-slate-200 border-dashed">
                         <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4 text-slate-300">
                             <Layout size={32} />

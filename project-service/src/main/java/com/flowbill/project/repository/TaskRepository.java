@@ -10,6 +10,17 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
 
         long countByTenantId(String tenantId);
 
+        long countByStatusAndTenantId(com.flowbill.project.enums.TaskStatus status, String tenantId);
+
+        long countByStatusAndTenantIdAndUpdatedAtAfter(com.flowbill.project.enums.TaskStatus status, String tenantId,
+                        java.time.LocalDateTime after);
+
+        long countByTypeAndStatusAndTenantId(com.flowbill.project.enums.TaskType type,
+                        com.flowbill.project.enums.TaskStatus status, String tenantId);
+
+        @Query("SELECT COALESCE(SUM(t.estimation), 0) FROM Task t WHERE t.tenantId = :tenantId AND (t.sprint.status = 'ACTIVE' OR t.sprint IS NULL)")
+        Long sumActiveEstimationByTenantId(@Param("tenantId") String tenantId);
+
         java.util.List<Task> findByProjectIdAndTenantId(Long projectId, String tenantId);
 
         java.util.List<Task> findBySprintIdAndTenantId(Long sprintId, String tenantId);
@@ -26,7 +37,7 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
         @Query(value = "SELECT t FROM Task t " +
                         "WHERE t.project.id = :projectId " +
                         "AND t.type = 'STORY' " +
-                        "AND (:search IS NULL OR LOWER(t.title) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(t.description) LIKE LOWER(CONCAT('%', :search, '%'))) "
+                        "AND (:search IS NULL OR LOWER(t.title) LIKE :search OR LOWER(t.description) LIKE :search) "
                         +
                         "AND (:moscow IS NULL OR t.moscowPriority = :moscow) " +
                         "AND (:sprintId IS NULL OR t.sprint.id = :sprintId) " +
@@ -36,7 +47,7 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
                                         +
                                         "WHERE t.project.id = :projectId " +
                                         "AND t.type = 'STORY' " +
-                                        "AND (:search IS NULL OR LOWER(t.title) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(t.description) LIKE LOWER(CONCAT('%', :search, '%'))) "
+                                        "AND (:search IS NULL OR LOWER(t.title) LIKE :search OR LOWER(t.description) LIKE :search) "
                                         +
                                         "AND (:moscow IS NULL OR t.moscowPriority = :moscow) " +
                                         "AND (:sprintId IS NULL OR t.sprint.id = :sprintId) " +

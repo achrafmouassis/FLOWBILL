@@ -52,5 +52,21 @@ export const billingService = {
             responseType: 'blob'
         });
         return response.data;
+    },
+    createQuote: async (data: any) => {
+        const response = await api.post<Quote>(`/billing/api/billing/quotes`, data);
+        return response.data;
+    },
+    createInvoiceFromQuote: async (quoteId: number) => {
+        const response = await api.post<Invoice>(`/billing/api/billing/invoices/from-quote/${quoteId}`);
+        return response.data;
+    },
+    acceptQuote: async (quoteId: number) => {
+        const response = await api.put<Quote>(`/billing/api/billing/quotes/${quoteId}/accept`);
+        return response.data;
+    },
+    rejectQuote: async (quoteId: number, reason: string) => {
+        const response = await api.put<Quote>(`/billing/api/billing/quotes/${quoteId}/reject`, { reason });
+        return response.data;
     }
 };

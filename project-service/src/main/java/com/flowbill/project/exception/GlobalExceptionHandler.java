@@ -41,6 +41,7 @@ public class GlobalExceptionHandler {
             String fieldName = ((org.springframework.validation.FieldError) error).getField();
             String errorMessage = error.getDefaultMessage();
             errors.put(fieldName, errorMessage);
+            System.err.println("Validation Error on " + fieldName + ": " + errorMessage);
         });
 
         Map<String, Object> body = new HashMap<>();

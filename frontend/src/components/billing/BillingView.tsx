@@ -8,31 +8,72 @@ interface BillingViewProps {
     projectId: number;
 }
 
+import CreateQuoteModal from './CreateQuoteModal';
+
 const BillingView: React.FC<BillingViewProps> = ({ projectId }) => {
     const [quotes, setQuotes] = useState<Quote[]>([]);
     const [invoices, setInvoices] = useState<Invoice[]>([]);
     const [loading, setLoading] = useState(true);
     const [activeSection, setActiveSection] = useState<'quotes' | 'invoices'>('quotes');
+    const [isCreateQuoteOpen, setIsCreateQuoteOpen] = useState(false);
+
+    const fetchBillingData = async () => {
+        setLoading(true);
+        try {
+            const [qData, iData] = await Promise.all([
+                billingService.getQuotes(projectId),
+                billingService.getInvoices(projectId)
+            ]);
+            setQuotes(qData);
+            setInvoices(iData);
+        } catch (err) {
+            console.error("Failed to fetch billing data", err);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        const fetchBillingData = async () => {
-            try {
-                const [qData, iData] = await Promise.all([
-                    billingService.getQuotes(projectId),
-                    billingService.getInvoices(projectId)
-                ]);
-                setQuotes(qData);
-                setInvoices(iData);
-            } catch (err) {
-                console.error("Failed to fetch billing data", err);
-            } finally {
-                setLoading(false);
-            }
-        };
         fetchBillingData();
     }, [projectId]);
 
+    const handleConvertToInvoice = async (quoteId: number) => {
+        if (!window.confirm("Voulez-vous convertir ce devis en facture ?")) return;
+        try {
+            await billingService.createInvoiceFromQuote(quoteId);
+            fetchBillingData();
+            setActiveSection('invoices');
+        } catch (err) {
+            console.error("Conversion failed", err);
+            alert("Erreur lors de la conversion en facture");
+        }
+    };
+
+    const handleAcceptQuote = async (quoteId: number) => {
+        if (!window.confirm("Accepter ce devis ?")) return;
+        try {
+            await billingService.acceptQuote(quoteId);
+            fetchBillingData();
+        } catch (err) {
+            console.error("Accept failed", err);
+            alert("Erreur lors de l'acceptation");
+        }
+    };
+
+    const handleRejectQuote = async (quoteId: number) => {
+        const reason = window.prompt("Raison du refus :");
+        if (reason === null) return;
+        try {
+            await billingService.rejectQuote(quoteId, reason);
+            fetchBillingData();
+        } catch (err) {
+            console.error("Reject failed", err);
+            alert("Erreur lors du refus");
+        }
+    };
+
     const handleDownload = async (invoiceId: number) => {
+        // ... (existing download logic)
         try {
             const blob = await billingService.downloadInvoicePdf(invoiceId);
             const url = window.URL.createObjectURL(blob);
@@ -66,7 +107,13 @@ const BillingView: React.FC<BillingViewProps> = ({ projectId }) => {
                         Factures ({invoices.length})
                     </button>
                 </div>
-                <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-200">
+                <button
+                    onClick={() => {
+                        if (activeSection === 'quotes') setIsCreateQuoteOpen(true);
+                        else alert("Veuillez créer une facture à partir d'un devis accepté.");
+                    }}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-200"
+                >
                     <Plus size={14} />
                     Nouveau {activeSection === 'quotes' ? 'Devis' : 'Facture'}
                 </button>
@@ -112,7 +159,34 @@ const BillingView: React.FC<BillingViewProps> = ({ projectId }) => {
                                             {quote.status}
                                         </span>
                                     </td>
-                                    <td className="px-6 py-4 text-right">
+                                    <td className="px-6 py-4 text-right flex justify-end gap-2">
+                                        {(quote.status === 'DRAFT' || quote.status === 'SENT') && (
+                                            <>
+                                                <button
+                                                    onClick={() => handleAcceptQuote(quote.id)}
+                                                    className="flex items-center gap-1 px-3 py-1.5 bg-emerald-50 text-emerald-600 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-emerald-100 transition-all"
+                                                    title="Accepter"
+                                                >
+                                                    <CheckCircle2 size={12} /> Accepter
+                                                </button>
+                                                <button
+                                                    onClick={() => handleRejectQuote(quote.id)}
+                                                    className="flex items-center gap-1 px-3 py-1.5 bg-rose-50 text-rose-600 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-rose-100 transition-all"
+                                                    title="Refuser"
+                                                >
+                                                    <AlertCircle size={12} /> Refuser
+                                                </button>
+                                            </>
+                                        )}
+                                        {quote.status === 'ACCEPTED' && (
+                                            <button
+                                                onClick={() => handleConvertToInvoice(quote.id)}
+                                                className="flex items-center gap-1 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-blue-100 transition-all"
+                                                title="Convertir en facture"
+                                            >
+                                                <Receipt size={12} /> Facturer
+                                            </button>
+                                        )}
                                         <button className="p-2 hover:bg-white hover:shadow-md rounded-lg text-slate-400 hover:text-blue-600 transition-all">
                                             <FileText size={16} />
                                         </button>
@@ -176,6 +250,13 @@ const BillingView: React.FC<BillingViewProps> = ({ projectId }) => {
                     </table>
                 </div>
             )}
+
+            <CreateQuoteModal
+                projectId={projectId}
+                isOpen={isCreateQuoteOpen}
+                onClose={() => setIsCreateQuoteOpen(false)}
+                onSuccess={fetchBillingData}
+            />
         </div>
     );
 };

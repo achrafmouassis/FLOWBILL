@@ -40,12 +40,10 @@ com\flowbill\project\dto\SprintClosureRequest.class
 com\flowbill\project\entity\UserDashboardPreferences.class
 com\flowbill\project\service\DashboardPreferencesService.class
 com\flowbill\project\dto\BacklogStatisticsDTO.class
-com\flowbill\project\dto\GlobalMetricsDTO$TaskCounts$TaskCountsBuilder.class
 com\flowbill\project\dto\SprintDashboardResponse$SprintDashboardResponseBuilder.class
 com\flowbill\project\dto\ProjectMemberDTO.class
 com\flowbill\project\service\ReportService.class
 com\flowbill\project\exception\NotFoundException.class
-com\flowbill\project\dto\GlobalMetricsDTO$TaskCounts.class
 com\flowbill\project\entity\Sprint$SprintStatus.class
 com\flowbill\project\dto\SprintRequest.class
 com\flowbill\project\dto\StoryBriefDTO.class

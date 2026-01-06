@@ -97,7 +97,7 @@ export interface Task {
     // Dependencies
     blockingIds?: number[];
     blockerIds?: number[];
-    
+
     // Enhanced relations for dashboard
     project?: { id: number; name: string; client?: string };
     sprint?: { id: number; name: string; endDate?: string; daysRemaining?: number };
@@ -146,6 +146,7 @@ export interface StoryCreationRequest {
     riskReduction?: number;
     projectId: number;
     sprintId?: number;
+    assignedUserId?: number;
     acceptanceCriteria?: string[];
     // competencies
 }

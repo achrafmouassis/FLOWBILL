@@ -51,6 +51,12 @@ spring:
             - Path=/sprints/**
           filters:
             - JwtAuthentication
+        - id: tasks-service
+          uri: ${SERVICE_PROJECT_URL}
+          predicates:
+            - Path=/tasks/**
+          filters:
+            - JwtAuthentication
 
 jwt:
   secret: ${JWT_SECRET}

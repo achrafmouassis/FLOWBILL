@@ -3,15 +3,22 @@ import { projectService } from '../../api/projectService';
 import type { MySprint } from '../../types';
 import Spinner from '../Spinner';
 
+const DUMMY_SPRINTS: MySprint[] = [
+    { id: 1, name: 'Sprint 1', status: 'ACTIVE', myCompletionRate: 65, myCompletedTasks: 5, myTotalTasks: 8, myRemainingHours: 12, project: { name: 'Alpha Banking' } },
+    { id: 2, name: 'Sprint 2', status: 'PLANNED', myCompletionRate: 0, myCompletedTasks: 0, myTotalTasks: 5, myRemainingHours: 20, project: { name: 'Beta Logistics' } },
+];
+
 export const MySprintsList = () => {
-    const [sprints, setSprints] = useState<MySprint[]>([]);
+    const [sprints, setSprints] = useState<MySprint[]>(DUMMY_SPRINTS);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchSprints = async () => {
             try {
                 const data = await projectService.getMySprints();
-                setSprints(data);
+                if (data && data.length > 0) {
+                    setSprints(data);
+                }
             } catch (error) {
                 console.error("Failed to fetch sprints", error);
             } finally {

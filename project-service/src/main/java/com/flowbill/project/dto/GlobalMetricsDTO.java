@@ -11,19 +11,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class GlobalMetricsDTO {
     private long activeProjects;
-    private long activeSprintsCount;
+    private long activeSprints;
     private long teamSize;
-    private TaskCounts activeTasks;
+    private long activeTasks;
     private long backlogStories;
     private long tasksCompletedThisWeek;
-
-    @Data
-    @Builder
-    @AllArgsConstructor
-    @NoArgsConstructor
-    public static class TaskCounts {
-        private long todo;
-        private long inProgress;
-        private long total;
-    }
 }

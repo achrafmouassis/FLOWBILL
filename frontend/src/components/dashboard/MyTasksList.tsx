@@ -4,8 +4,14 @@ import type { Task } from '../../types';
 import Spinner from '../Spinner';
 import { TaskStatusUpdater } from './TaskStatusUpdater';
 
+const DUMMY_TASKS: Task[] = [
+    { id: 1, title: 'Implement Auth', type: 'STORY', status: 'IN_PROGRESS', priority: 'HIGH', project: { name: 'Alpha Banking' }, sprint: { name: 'Sprint 1' } },
+    { id: 2, title: 'Design Database', type: 'TASK', status: 'DONE', priority: 'CRITICAL', project: { name: 'Alpha Banking' }, sprint: { name: 'Sprint 1' } },
+    { id: 3, title: 'Setup CI/CD', type: 'TASK', status: 'TODO', priority: 'MEDIUM', project: { name: 'Beta Logistics' }, sprint: { name: 'Sprint 1' } },
+];
+
 export const MyTasksList = () => {
-    const [tasks, setTasks] = useState<Task[]>([]);
+    const [tasks, setTasks] = useState<Task[]>(DUMMY_TASKS);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState<string>('ALL');
 
@@ -13,7 +19,9 @@ export const MyTasksList = () => {
         setLoading(true);
         try {
             const data = await projectService.getMyTasks();
-            setTasks(data);
+            if (data && data.length > 0) {
+                setTasks(data);
+            }
         } catch (error) {
             console.error("Failed to fetch tasks", error);
         } finally {

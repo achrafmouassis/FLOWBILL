@@ -13,6 +13,7 @@ interface CreateStoryModalProps {
 const CreateStoryModal: React.FC<CreateStoryModalProps> = ({ projectId, isOpen, onClose, onSuccess }) => {
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
+    const [teamMembers, setTeamMembers] = useState<any[]>([]); // Store project members
     const [formData, setFormData] = useState({
         title: '',
         description: '',
@@ -22,8 +23,18 @@ const CreateStoryModal: React.FC<CreateStoryModalProps> = ({ projectId, isOpen, 
         timeCriticality: 5,
         riskReduction: 5,
         criteria: [''],
-        blockerIds: [] as number[]
+        blockerIds: [] as number[],
+        assignedUserId: '' // New field
     });
+
+    React.useEffect(() => {
+        if (isOpen) {
+            // Fetch project details to get team members
+            projectService.getProjectDetail(projectId).then(data => {
+                setTeamMembers(data.teamMembers || []);
+            });
+        }
+    }, [isOpen, projectId]);
 
     // Subcomponent for selector (simplifies MVP)
     const DependencySelector = ({ projectId, selectedIds, onChange }: any) => {
@@ -99,6 +110,11 @@ const CreateStoryModal: React.FC<CreateStoryModalProps> = ({ projectId, isOpen, 
     };
 
     const handleSubmit = async () => {
+        if (!formData.assignedUserId) {
+            alert('Veuillez assigner un développeur');
+            return;
+        }
+
         setLoading(true);
         try {
             await projectService.createStory(projectId, {
@@ -108,7 +124,8 @@ const CreateStoryModal: React.FC<CreateStoryModalProps> = ({ projectId, isOpen, 
                 timeCriticality: Number(formData.timeCriticality),
                 riskReduction: Number(formData.riskReduction),
                 acceptanceCriteria: formData.criteria.filter(c => c.trim() !== ''),
-                blockerIds: formData.blockerIds
+                blockerIds: formData.blockerIds,
+                assignedUserId: Number(formData.assignedUserId)
             });
             onSuccess();
             onClose();
@@ -162,6 +179,22 @@ const CreateStoryModal: React.FC<CreateStoryModalProps> = ({ projectId, isOpen, 
                                     placeholder="Contexte, besoin métier, valeur..."
                                     className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none font-medium resize-none"
                                 />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-2">Développeur Assigné *</label>
+                                <select
+                                    name="assignedUserId"
+                                    value={formData.assignedUserId}
+                                    onChange={handleChange}
+                                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none font-medium"
+                                >
+                                    <option value="">Sélectionner un développeur...</option>
+                                    {teamMembers.map(m => (
+                                        <option key={m.userId} value={m.userId}>
+                                            {m.fullName} ({m.role})
+                                        </option>
+                                    ))}
+                                </select>
                             </div>
                             <div>
                                 <label className="block text-sm font-bold text-slate-700 mb-2">Critères d'Acceptation</label>
@@ -286,7 +319,7 @@ const CreateStoryModal: React.FC<CreateStoryModalProps> = ({ projectId, isOpen, 
                     {step < 4 ? (
                         <button
                             onClick={() => {
-                                if (step === 1 && !formData.title.trim()) { alert('Le titre est obligatoire'); return; }
+                                if (step === 1 && (!formData.title.trim() || !formData.assignedUserId)) { alert('Le titre et le développeur sont obligatoires'); return; }
                                 setStep(step + 1);
                             }}
                             className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-blue-200 transition-all"

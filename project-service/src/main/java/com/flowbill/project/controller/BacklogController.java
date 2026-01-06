@@ -12,6 +12,8 @@ import com.flowbill.project.service.ActivityLogService;
 import com.flowbill.project.service.TaskService;
 import com.flowbill.project.exception.NotFoundException;
 import com.flowbill.project.exception.BadRequestException;
+import com.flowbill.project.repository.TaskDependencyRepository;
+import com.flowbill.project.entity.TaskDependency;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -37,6 +39,7 @@ public class BacklogController {
         private final TaskService taskService;
         private final TaskRepository taskRepository;
         private final AcceptanceCriteriaRepository acceptanceCriteriaRepository;
+        private final TaskDependencyRepository taskDependencyRepository;
         private final ActivityLogService activityLogService;
 
         @GetMapping("/stories")
@@ -55,17 +58,9 @@ public class BacklogController {
 
                 String tenantId = com.flowbill.project.config.TenantContext.getCurrentTenant();
 
-                Page<Task> storiesPage;
-                if ("ROLE_ADMIN_ENTREPRISE".equals(role)) {
-                        storiesPage = taskRepository.searchBacklogStories(
-                                        projectId, search, moscow, sprintId, unplanned, tenantId, pageable);
-                } else {
-                        // For Developer, original logic was just a list
-                        List<Task> stories = taskRepository.searchBacklogStoriesForDeveloper(
-                                        projectId, userId, moscow != null ? List.of(moscow) : null, sprintId, search,
-                                        "wsjf", tenantId);
-                        storiesPage = new org.springframework.data.domain.PageImpl<>(stories, pageable, stories.size());
-                }
+                String formattedSearch = search != null ? "%" + search.toLowerCase() + "%" : null;
+                Page<Task> storiesPage = taskRepository.searchBacklogStories(
+                                projectId, formattedSearch, moscow, sprintId, unplanned, tenantId, pageable);
 
                 Page<TaskResponse> dtosPage = storiesPage.map(TaskResponse::fromEntity);
                 return ResponseEntity.ok(dtosPage);
@@ -98,6 +93,7 @@ public class BacklogController {
                                 ? MoscowPriority.fromString(request.getMoscowPriority())
                                 : null);
                 story.setStatus(TaskStatus.TODO);
+                story.setAssignedUserId(request.getAssignedUserId());
 
                 if (request.getBusinessValue() != null) {
                         Integer wsjfScore = calculateWsjf(
@@ -119,19 +115,31 @@ public class BacklogController {
                 Task savedStory = taskRepository.save(story);
 
                 if (request.getAcceptanceCriteria() != null) {
-
+                        int order = 1;
                         for (String desc : request.getAcceptanceCriteria()) {
                                 AcceptanceCriteria criteria = new AcceptanceCriteria();
                                 criteria.setTask(savedStory);
                                 criteria.setDescription(desc);
-                                // criteria.setOrder(order++); // Column order might be missing in entity if V8
-                                // not applied yet.
-                                // Assuming V8 applied or column ignored.
-                                // Prompt said V8 recommended. I'll rely on it or skip order field if
-                                // compilation fails.
-                                // Actually Entity needs update if I use setOrder.
+                                criteria.setOrder(order++);
                                 criteria.setCompleted(false);
                                 acceptanceCriteriaRepository.save(criteria);
+                        }
+                }
+
+                if (request.getBlockerIds() != null) {
+                        for (Long blockerId : request.getBlockerIds()) {
+                                Task blocker = taskRepository.findById(blockerId)
+                                                .orElseThrow(() -> new NotFoundException(
+                                                                "Blocker " + blockerId + " non trouvé"));
+                                TaskDependency dep = new TaskDependency();
+                                TaskDependency.TaskDependencyId id = new TaskDependency.TaskDependencyId();
+                                id.setBlockerId(blockerId);
+                                id.setBlockedId(savedStory.getId());
+                                dep.setId(id);
+                                dep.setBlocker(blocker);
+                                dep.setBlocked(savedStory);
+                                dep.setDependencyType("BLOCKING");
+                                taskDependencyRepository.save(dep);
                         }
                 }
 

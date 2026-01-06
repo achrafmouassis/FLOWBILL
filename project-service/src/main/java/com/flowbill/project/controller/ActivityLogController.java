@@ -18,6 +18,7 @@ public class ActivityLogController {
     @GetMapping("/timeline")
     @org.springframework.security.access.prepost.PreAuthorize("hasAuthority('ROLE_ADMIN_ENTREPRISE')")
     public List<ActivityLog> getTimeline() {
-        return activityLogRepository.findTop20ByOrderByCreatedAtDesc();
+        String tenantId = com.flowbill.project.config.TenantContext.getCurrentTenant();
+        return activityLogRepository.findTop20ByTenantIdOrderByCreatedAtDesc(tenantId);
     }
 }

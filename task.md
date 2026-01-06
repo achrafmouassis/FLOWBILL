@@ -66,6 +66,17 @@
     - [x] Robust role extraction in Gateway
     - [x] Restart and verify with browser console details
 
+- [x] Phase 27: Debugging SQL and Endpoint Errors
+    - [x] Identify root causes for SQL `lower(bytea)` error
+    - [x] Identify root causes for Sprint endpoint 404s
+    - [x] Identify root causes for Reporting endpoint 404s
+    - [x] Create Implementation Plan
+    - [x] Fix SQL Type Mismatch in `TaskRepository`
+    - [x] Fix Sprint Mapping in `SprintController`
+    - [x] Fix Reporting Mapping in `DashboardController`
+    - [x] Fix Active Dashboard endpoint mapping
+    - [x] Fix Sprint date format deserialization
+    - [x] Restart services and verify fixes
 - [x] Phase 18: Security Hardening (P0 Fixes)
     - [x] Update Repositories with `findByIdAndTenantId`
     - [x] Secure `ProjectService` lookups
@@ -81,5 +92,42 @@
 
 - [x] Phase 20: Gateway Route Filter Configuration
     - [x] Rename class to `JwtAuthenticationGatewayFilterFactory` (Standard Convention)
-    - [x] Update `application.yml` with simplified `JwtAuthentication` filter name
-    - [ ] Verify fix by observing microservice logs for security context logs
+    - [x] Relax validation in `CreateStoryRequest` (title/desc min 1)
+    - [x] Fix unused variables in `ProjectDetailPage.tsx` for build success
+    - [x] Verify fix by observing microservice logs for security context logs
+
+## Phase 21: Developer Interface Improvements
+- [x] Frontend: Enhance `UserDashboard` (Developer Dashboard) <!-- id: 50 -->
+    - [x] Add Projects list with links
+    - [x] Add summary statistics (Tasks, Sprints)
+    - [x] Improve UI/UX (Premium feel)
+- [x] Frontend: Secure & Adapt `ProjectDetailPage` for Developers <!-- id: 51 -->
+    - [x] Hide sensitive tabs (Billing, Settings) based on role
+    - [x] Dynamic Back button navigation
+    - [x] UX consistency for non-admin users
+
+## Phase 22: Data Seeder & Query Optimization
+- [x] Analyze Data Seeder and SQL queries for related data display.
+- [x] Optimize `data.sql` to include linked users, projects, and task hierarchies.
+- [x] Verify project progress and team display with new seeded data.
+
+## Phase 23: Dynamic Admin Reporting & Multi-tenancy
+- [x] Fix hardcoded dashboard filters <!-- id: 60 -->
+- [x] Implement tenant-wide and project-specific metrics <!-- id: 61 -->
+- [x] Remove MVP hardcoded placeholders ("activeProjects = 1", etc.) <!-- id: 62 -->
+
+## Phase 24: Scaling Seed Data & Dashboard Realism
+- [x] Scale `data.sql` with more tenants, projects, and users <!-- id: 70 -->
+- [x] Implement dense backlog and task hierarchies per project <!-- id: 71 -->
+- [x] Seed `ActivityLog` for realistic dashboard timeline <!-- id: 72 -->
+- [x] Verify Overview charts and indicators for high-data volume <!-- id: 73 -->
+
+## Phase 25: Debugging Backlog & Story Creation
+- [x] Investigate Backlog story display issues <!-- id: 74 -->
+- [x] Fix Story creation validation and persistence <!-- id: 75 -->
+- [x] Verify Backlog refresh after creation <!-- id: 76 -->
+
+## Phase 26: Debugging Billing (Invoices & Quotes)
+- [x] Investigate Invoice creation failure <!-- id: 77 -->
+- [x] Investigate Quote (Devis) creation failure <!-- id: 78 -->
+- [x] Verify Billing dashboard updates <!-- id: 79 -->

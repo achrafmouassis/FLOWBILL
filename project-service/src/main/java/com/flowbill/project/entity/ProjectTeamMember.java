@@ -14,6 +14,8 @@ public class ProjectTeamMember {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id")
+    @com.fasterxml.jackson.annotation.JsonBackReference
+    @lombok.ToString.Exclude
     private Project project;
 
     @Column(name = "user_id")

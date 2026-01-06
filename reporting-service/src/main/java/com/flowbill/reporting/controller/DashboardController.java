@@ -158,7 +158,7 @@ public class DashboardController {
         return alerts;
     }
 
-    @GetMapping("/velocity-chart")
+    @GetMapping("/velocity")
     @org.springframework.security.access.prepost.PreAuthorize("hasAuthority('ROLE_ADMIN_ENTREPRISE')")
     public java.util.List<com.flowbill.reporting.dto.VelocityResponse> getVelocityChart() {
         String tenantId = getCurrentTenantId();
@@ -185,7 +185,7 @@ public class DashboardController {
         return velocity;
     }
 
-    @GetMapping("/team-capacity")
+    @GetMapping("/team-load")
     @org.springframework.security.access.prepost.PreAuthorize("hasAuthority('ROLE_ADMIN_ENTREPRISE')")
     public java.util.List<com.flowbill.reporting.dto.TeamCapacityResponse> getTeamCapacity() {
         String tenantId = getCurrentTenantId();

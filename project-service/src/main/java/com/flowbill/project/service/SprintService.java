@@ -35,8 +35,8 @@ public class SprintService {
 
         Sprint sprint = new Sprint();
         sprint.setName(request.getName());
-        sprint.setStartDate(request.getStartDate());
-        sprint.setEndDate(request.getEndDate());
+        sprint.setStartDate(request.getStartDate().atStartOfDay());
+        sprint.setEndDate(request.getEndDate().atTime(23, 59, 59));
         sprint.setGoal(request.getGoal());
         sprint.setProject(project);
         sprint.setStatus(Sprint.SprintStatus.PLANNED);

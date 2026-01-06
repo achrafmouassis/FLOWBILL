@@ -16,17 +16,19 @@ public class ReportController {
     private final ReportService reportService;
 
     @GetMapping("/global-metrics")
-    public ResponseEntity<GlobalMetricsDTO> getGlobalMetrics(@RequestParam Long projectId) {
+    public ResponseEntity<GlobalMetricsDTO> getGlobalMetrics(@RequestParam(required = false) Long projectId) {
         return ResponseEntity.ok(reportService.getGlobalMetrics(projectId));
     }
 
     @GetMapping("/alerts")
-    public ResponseEntity<List<com.flowbill.project.dto.ReportAlertDTO>> getAlerts(@RequestParam Long projectId) {
+    public ResponseEntity<List<com.flowbill.project.dto.ReportAlertDTO>> getAlerts(
+            @RequestParam(required = false) Long projectId) {
         return ResponseEntity.ok(reportService.getAlerts(projectId));
     }
 
     @GetMapping("/team-load")
-    public ResponseEntity<com.flowbill.project.dto.TeamLoadDTO> getTeamLoad(@RequestParam Long projectId) {
+    public ResponseEntity<com.flowbill.project.dto.TeamLoadDTO> getTeamLoad(
+            @RequestParam(required = false) Long projectId) {
         return ResponseEntity.ok(reportService.getTeamLoad(projectId));
     }
 }

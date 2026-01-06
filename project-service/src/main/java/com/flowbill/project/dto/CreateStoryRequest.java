@@ -1,17 +1,19 @@
 package com.flowbill.project.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 import java.util.List;
 
 @Data
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class CreateStoryRequest {
     @NotBlank
-    @Size(min = 3, max = 255, message = "Title must be between 3 and 255 characters")
+    @Size(min = 1, max = 255, message = "Title must be between 1 and 255 characters")
     private String title;
 
     @NotBlank
-    @Size(min = 10, max = 5000, message = "Description must be between 10 and 5000 characters")
+    @Size(min = 1, max = 5000, message = "Description must be between 1 and 5000 characters")
     private String description;
 
     @NotNull(message = "Estimation is required")
@@ -34,6 +36,8 @@ public class CreateStoryRequest {
 
     private List<String> acceptanceCriteria;
 
-    private List<String> competencies;
-    private List<Long> dependencyIds; // IDs of blocking stories
+    private List<Long> blockerIds; // IDs of blocking stories (matches frontend)
+
+    @NotNull(message = "Assigned user is required")
+    private Long assignedUserId;
 }

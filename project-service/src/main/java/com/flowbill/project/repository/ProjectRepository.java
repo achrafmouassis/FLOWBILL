@@ -12,6 +12,8 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
 
         List<Project> findAllByTenantId(String tenantId);
 
+        long countByTenantIdAndStatus(String tenantId, Project.ProjectStatus status);
+
         @Query("SELECT p FROM Project p WHERE p.tenantId = :tenantId " +
                         "AND (:status IS NULL OR p.status = :status) " +
                         "AND (:type IS NULL OR p.type = :type) " +
