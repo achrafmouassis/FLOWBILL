@@ -36,37 +36,37 @@ export interface Invoice {
 
 export const billingService = {
     getQuotes: async (projectId: number) => {
-        const response = await api.get<Quote[]>(`/billing/api/billing/quotes`, {
+        const response = await api.get<Quote[]>(`/billing/quotes`, {
             params: { projectId }
         });
         return response.data;
     },
     getInvoices: async (projectId: number) => {
-        const response = await api.get<Invoice[]>(`/billing/api/billing/invoices`, {
+        const response = await api.get<Invoice[]>(`/billing/invoices`, {
             params: { projectId }
         });
         return response.data;
     },
     downloadInvoicePdf: async (invoiceId: number) => {
-        const response = await api.get(`/billing/api/billing/invoices/${invoiceId}/pdf`, {
+        const response = await api.get(`/billing/invoices/${invoiceId}/pdf`, {
             responseType: 'blob'
         });
         return response.data;
     },
     createQuote: async (data: any) => {
-        const response = await api.post<Quote>(`/billing/api/billing/quotes`, data);
+        const response = await api.post<Quote>(`/billing/quotes`, data);
         return response.data;
     },
     createInvoiceFromQuote: async (quoteId: number) => {
-        const response = await api.post<Invoice>(`/billing/api/billing/invoices/from-quote/${quoteId}`);
+        const response = await api.post<Invoice>(`/billing/invoices/from-quote/${quoteId}`);
         return response.data;
     },
     acceptQuote: async (quoteId: number) => {
-        const response = await api.put<Quote>(`/billing/api/billing/quotes/${quoteId}/accept`);
+        const response = await api.put<Quote>(`/billing/quotes/${quoteId}/accept`);
         return response.data;
     },
     rejectQuote: async (quoteId: number, reason: string) => {
-        const response = await api.put<Quote>(`/billing/api/billing/quotes/${quoteId}/reject`, { reason });
+        const response = await api.put<Quote>(`/billing/quotes/${quoteId}/reject`, { reason });
         return response.data;
     }
 };

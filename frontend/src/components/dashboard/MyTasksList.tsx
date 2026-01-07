@@ -5,9 +5,9 @@ import Spinner from '../Spinner';
 import { TaskStatusUpdater } from './TaskStatusUpdater';
 
 const DUMMY_TASKS: Task[] = [
-    { id: 1, title: 'Implement Auth', type: 'STORY', status: 'IN_PROGRESS', priority: 'HIGH', project: { name: 'Alpha Banking' }, sprint: { name: 'Sprint 1' } },
-    { id: 2, title: 'Design Database', type: 'TASK', status: 'DONE', priority: 'CRITICAL', project: { name: 'Alpha Banking' }, sprint: { name: 'Sprint 1' } },
-    { id: 3, title: 'Setup CI/CD', type: 'TASK', status: 'TODO', priority: 'MEDIUM', project: { name: 'Beta Logistics' }, sprint: { name: 'Sprint 1' } },
+    { id: 1, title: 'Implement Auth', type: 'STORY', status: 'IN_PROGRESS', priority: 'HIGH', projectId: 1, project: { id: 1, name: 'Alpha Banking' }, sprint: { id: 1, name: 'Sprint 1' } },
+    { id: 2, title: 'Design Database', type: 'TASK', status: 'DONE', priority: 'URGENT', projectId: 1, project: { id: 1, name: 'Alpha Banking' }, sprint: { id: 1, name: 'Sprint 1' } },
+    { id: 3, title: 'Setup CI/CD', type: 'TASK', status: 'TODO', priority: 'MEDIUM', projectId: 2, project: { id: 2, name: 'Beta Logistics' }, sprint: { id: 1, name: 'Sprint 1' } },
 ];
 
 export const MyTasksList = () => {

@@ -13,7 +13,7 @@ import ReportingTab from '../components/dashboard/ReportingTab';
 import BillingView from '../components/billing/BillingView';
 import ProjectTeam from '../components/project/ProjectTeam';
 import { jwtDecode } from 'jwt-decode';
-import { ChevronLeft, Layout, ListTodo, Layers, Users, BarChart3, Settings, Receipt } from 'lucide-react';
+import { ChevronLeft, Layout, ListTodo, Layers, Users, BarChart3, Receipt } from 'lucide-react';
 
 const ProjectDetailPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();

@@ -4,8 +4,8 @@ import type { MySprint } from '../../types';
 import Spinner from '../Spinner';
 
 const DUMMY_SPRINTS: MySprint[] = [
-    { id: 1, name: 'Sprint 1', status: 'ACTIVE', myCompletionRate: 65, myCompletedTasks: 5, myTotalTasks: 8, myRemainingHours: 12, project: { name: 'Alpha Banking' } },
-    { id: 2, name: 'Sprint 2', status: 'PLANNED', myCompletionRate: 0, myCompletedTasks: 0, myTotalTasks: 5, myRemainingHours: 20, project: { name: 'Beta Logistics' } },
+    { id: 1, name: 'Sprint 1', status: 'ACTIVE', goal: 'Initial Setup', myCompletionRate: 65, myCompletedTasks: 5, myTotalTasks: 8, myRemainingHours: 12, project: { id: 1, name: 'Alpha Banking' } },
+    { id: 2, name: 'Sprint 2', status: 'PLANNED', goal: 'Core Features', myCompletionRate: 0, myCompletedTasks: 0, myTotalTasks: 5, myRemainingHours: 20, project: { id: 2, name: 'Beta Logistics' } },
 ];
 
 export const MySprintsList = () => {

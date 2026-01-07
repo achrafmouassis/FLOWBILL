@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/billing/quotes")
+@RequestMapping("/billing/quotes")
 public class QuoteController {
 
     @Autowired

@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/billing/invoices")
+@RequestMapping("/billing/invoices")
 public class InvoiceController {
 
     @Autowired
