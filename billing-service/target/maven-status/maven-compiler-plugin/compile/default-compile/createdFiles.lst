@@ -24,6 +24,7 @@ com\flowbill\billing\service\InvoiceService.class
 com\flowbill\billing\controller\InvoiceController.class
 com\flowbill\billing\entity\InvoiceStatus.class
 com\flowbill\billing\controller\QuoteController.class
+com\flowbill\billing\config\SecurityConfig.class
 com\flowbill\billing\dto\QuoteDTO.class
 com\flowbill\billing\entity\Invoice.class
 com\flowbill\billing\exception\BillingExceptions$ValidationException.class

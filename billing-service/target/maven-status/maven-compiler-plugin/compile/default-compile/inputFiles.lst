@@ -19,6 +19,7 @@ C:\Users\AGA GAMING\Desktop\FLOWBILL\billing-service\src\main\java\com\flowbill\
 C:\Users\AGA GAMING\Desktop\FLOWBILL\billing-service\src\main\java\com\flowbill\billing\repository\BillingEventRepository.java
 C:\Users\AGA GAMING\Desktop\FLOWBILL\billing-service\src\main\java\com\flowbill\billing\entity\InvoiceStatus.java
 C:\Users\AGA GAMING\Desktop\FLOWBILL\billing-service\src\main\java\com\flowbill\billing\service\InvoiceService.java
+C:\Users\AGA GAMING\Desktop\FLOWBILL\billing-service\src\main\java\com\flowbill\billing\config\SecurityConfig.java
 C:\Users\AGA GAMING\Desktop\FLOWBILL\billing-service\src\main\java\com\flowbill\billing\dto\QuoteLineRequest.java
 C:\Users\AGA GAMING\Desktop\FLOWBILL\billing-service\src\main\java\com\flowbill\billing\config\MultiTenantDataSource.java
 C:\Users\AGA GAMING\Desktop\FLOWBILL\billing-service\src\main\java\com\flowbill\billing\repository\InvoiceRepository.java
